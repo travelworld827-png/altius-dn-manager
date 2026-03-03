@@ -1,0 +1,1940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Altius DN Manager</title>
+<meta name="description" content="Altius Industries LLC — Delivery Note Management System"/>
+<meta name="theme-color" content="#05070f"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="DN Manager"/>
+<link rel="manifest" id="pwa-manifest"/>
+<link rel="apple-touch-icon" id="apple-icon"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05070f;--sf:#0d1120;--sf2:#111827;--sf3:#1a2235;
+  --bd:#1e2d45;--bd2:#253452;
+  --tx:#c9d4e8;--tx2:#7a90b5;--tx3:#3d5070;--wh:#eef2ff;
+  --ac:#4f8ef7;--ac2:#6ba3ff;--ag:rgba(79,142,247,.18);
+  --gd:#f5c842;--rd:#f05a5a;--gr:#34d399;--pu:#a78bfa;
+  --r:10px;--r2:16px;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 70% 0%,rgba(79,142,247,.07),transparent),radial-gradient(ellipse 40% 30% at 10% 100%,rgba(245,200,66,.05),transparent);pointer-events:none;z-index:0}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+input,select,button{font-family:'Plus Jakarta Sans',sans-serif}
+input[type=text],input[type=number],input[type=date],input[type=search],select{
+  font-family:'JetBrains Mono',monospace;background:var(--sf2);border:1.5px solid var(--bd);
+  border-radius:var(--r);color:var(--wh);padding:10px 14px;font-size:13px;width:100%;
+  transition:border-color .2s,box-shadow .2s;outline:none}
+input:focus,select:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--ag)}
+button{cursor:pointer}
+#app{display:flex;flex-direction:column;min-height:100vh;position:relative;z-index:1}
+header{background:rgba(8,12,24,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:0 32px;position:sticky;top:0;z-index:200}
+.htop{display:flex;justify-content:space-between;align-items:center;padding:16px 0 10px}
+.brand{display:flex;align-items:center;gap:13px}
+.bico{width:40px;height:40px;background:linear-gradient(135deg,var(--ac),#2563eb);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 16px rgba(79,142,247,.35)}
+.bnm{font-size:18px;font-weight:800;color:var(--wh);letter-spacing:-.5px}
+.bsb{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+nav{display:flex;gap:3px;padding-bottom:1px}
+.nvb{background:none;border:none;color:var(--tx3);padding:10px 18px;font-size:13px;font-weight:700;border-radius:8px 8px 0 0;transition:all .2s;position:relative;cursor:pointer}
+.nvb:hover{background:var(--sf2);color:var(--tx2)}
+.nvb.on{color:var(--ac);background:rgba(79,142,247,.08)}
+.nvb.on::after{content:'';position:absolute;bottom:0;left:12px;right:12px;height:2px;background:var(--ac);border-radius:2px 2px 0 0}
+.nbdg{font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px}
+.nac{background:rgba(79,142,247,.15);color:var(--ac)}
+.ngr{background:rgba(52,211,153,.12);color:var(--gr)}
+.npu{background:rgba(167,139,250,.12);color:var(--pu)}
+.xbtn{background:linear-gradient(135deg,#f5c842,#e8a82a);color:#1a1000;font-size:13px;font-weight:800;padding:10px 20px;border-radius:var(--r);border:none;box-shadow:0 4px 14px rgba(245,200,66,.3);transition:all .2s;cursor:pointer}
+.xbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,200,66,.45)}
+.tbtn{background:var(--sf3);color:var(--ac);font-size:13px;font-weight:700;padding:10px 18px;border-radius:var(--r);border:1.5px solid var(--bd2);transition:all .2s;cursor:pointer}
+.tbtn:hover{background:var(--ag);border-color:var(--ac);transform:translateY(-1px)}
+main{flex:1;max-width:1280px;width:100%;margin:0 auto;padding:36px 32px}
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:var(--r);padding:10px 20px;font-size:13px;font-weight:700;transition:all .2s;white-space:nowrap;cursor:pointer}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+.bpr{background:linear-gradient(135deg,var(--ac),#2563eb);color:#fff;box-shadow:0 4px 14px rgba(79,142,247,.35)}
+.bpr:hover{box-shadow:0 6px 20px rgba(79,142,247,.5)}
+.bsc{background:var(--sf3);color:var(--tx2);border:1.5px solid var(--bd2)}
+.bsc:hover{border-color:var(--ac);color:var(--ac)}
+.bdn{background:transparent;color:var(--rd);border:1.5px solid rgba(240,90,90,.4)}
+.bdn:hover{background:rgba(240,90,90,.1);border-color:var(--rd)}
+.bgh{background:transparent;border:1.5px dashed var(--bd2);color:var(--ac);width:100%;justify-content:center;margin-top:10px;padding:11px}
+.bgh:hover{background:var(--ag);border-color:var(--ac)}
+.bpu{background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;box-shadow:0 4px 14px rgba(167,139,250,.3)}
+.bpu:hover{box-shadow:0 6px 20px rgba(167,139,250,.5)}
+.bsm{padding:7px 14px;font-size:12px}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.pt{font-size:26px;font-weight:800;color:var(--wh);letter-spacing:-.6px}
+.ps{font-size:13px;color:var(--tx3);margin-top:3px;font-family:'JetBrains Mono',monospace}
+.emp{text-align:center;padding:90px 20px;background:var(--sf);border-radius:var(--r2);border:1.5px dashed var(--bd2)}
+.eic{font-size:56px;margin-bottom:18px}.ett{font-size:20px;font-weight:800;color:var(--wh);margin-bottom:8px}
+.etx{color:var(--tx3);font-size:14px;line-height:1.6}
+.sts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px}
+.sc{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r2);padding:18px 22px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.sc:hover{transform:translateY(-1px)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc:nth-child(1)::before{background:linear-gradient(90deg,var(--ac),transparent)}
+.sc:nth-child(2)::before{background:linear-gradient(90deg,var(--gd),transparent)}
+.sc:nth-child(3)::before{background:linear-gradient(90deg,var(--gr),transparent)}
+.sc:nth-child(4)::before{background:linear-gradient(90deg,var(--pu),transparent)}
+.slb{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.svl{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;line-height:1}
+.cac{color:var(--ac)}.cgd{color:var(--gd)}.cgr{color:var(--gr)}.cpu{color:var(--pu)}
+.ssb{font-size:11px;color:var(--tx3);margin-top:5px;font-family:'JetBrains Mono',monospace}
+.sw{position:relative;margin-bottom:22px}
+.sw input{padding-left:42px;background:var(--sf)}
+.si{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--tx3);font-size:16px;pointer-events:none}
+.grd{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.card{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r2);padding:22px;transition:all .2s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ac),var(--ac2),transparent);opacity:0;transition:opacity .2s}
+.card:hover{border-color:rgba(79,142,247,.5);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.card:hover::before{opacity:1}
+.chd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.cno{font-size:18px;font-weight:800;color:var(--wh);font-family:'JetBrains Mono',monospace}
+.cnm{font-size:14px;color:var(--tx);font-weight:700;margin-top:2px}
+.cmt{font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:5px}
+.ctg{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.tag{font-size:11px;padding:3px 9px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.tbl{background:rgba(79,142,247,.12);color:var(--ac);border:1px solid rgba(79,142,247,.2)}
+.tgy{background:var(--sf3);color:var(--tx3);border:1px solid var(--bd)}
+.tpu{background:rgba(167,139,250,.12);color:var(--pu);border:1px solid rgba(167,139,250,.2)}
+.cft{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--bd)}
+.ctv{font-size:17px;font-weight:800;color:var(--gd);font-family:'JetBrains Mono',monospace}
+.ctl{font-size:10px;color:var(--tx3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.cdl{background:none;border:none;color:var(--tx3);font-size:14px;opacity:0;transition:all .15s;padding:5px 7px;border-radius:6px;cursor:pointer}
+.card:hover .cdl{opacity:1}
+.cdl:hover{color:var(--rd);background:rgba(240,90,90,.1)}
+.fc{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r2);overflow:hidden}
+.fhd{padding:22px 28px;border-bottom:1px solid var(--bd);background:linear-gradient(135deg,var(--sf2),var(--sf))}
+.fbd{padding:28px}
+.fsc{margin-bottom:28px;padding-bottom:28px;border-bottom:1px solid var(--bd)}
+.fsc:last-of-type{border-bottom:none}
+.flb{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:2px;font-family:'JetBrains Mono',monospace;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.flb::after{content:'';flex:1;height:1px;background:var(--bd)}
+.fgr{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fg{display:flex;flex-direction:column;gap:7px}
+.lb{font-size:11px;color:var(--tx2);font-family:'JetBrains Mono',monospace;letter-spacing:.5px;font-weight:600}
+.tw{overflow-x:auto;border-radius:var(--r);border:1.5px solid var(--bd);background:var(--sf2)}
+.tw.ac-wrap{overflow:visible}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--sf3);padding:11px 13px;font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.5px;text-align:left;font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--bd);white-space:nowrap;font-weight:600}
+tbody tr{border-bottom:1px solid var(--bd);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(79,142,247,.04)}
+td{padding:11px 13px;font-size:13px;color:var(--tx2);vertical-align:middle}
+td input,td select{margin:0;padding:8px 10px;font-size:12px;background:var(--sf);border-color:var(--bd)}
+.tdn{color:var(--wh);font-weight:700}.tdm{font-family:'JetBrains Mono',monospace}
+.tda{font-family:'JetBrains Mono',monospace;color:var(--gd);font-weight:600}
+.tdr{text-align:right}.tdc{text-align:center}
+.rdl{background:none;border:none;color:var(--tx3);font-size:14px;opacity:0;cursor:pointer;padding:3px 6px;border-radius:5px;transition:all .15s}
+tbody tr:hover .rdl{opacity:1}
+.rdl:hover{color:var(--rd);background:rgba(240,90,90,.12)}
+/* AUTOCOMPLETE */
+.acw{position:relative}
+.ac-wrap table,.ac-wrap tbody,.ac-wrap tr,.ac-wrap td{overflow:visible}
+.drop{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--sf2);border:1.5px solid var(--bd2);border-radius:var(--r);z-index:99999;box-shadow:0 16px 40px rgba(0,0,0,.85);max-height:230px;overflow-y:auto;display:none}
+.ddi{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--bd);transition:background .1s}
+.ddi:last-child{border-bottom:none}
+.ddi:hover,.ddi.hover{background:rgba(79,142,247,.12)}
+.ddn{color:var(--wh);font-weight:700}
+.ddm{color:var(--tx3);font-size:11px;font-family:'JetBrains Mono',monospace}
+/* TOTAL BAR */
+.tbar{display:flex;justify-content:flex-end;align-items:center;gap:16px;background:linear-gradient(135deg,var(--sf2),var(--sf3));border-radius:var(--r);padding:15px 20px;margin-top:12px;border:1.5px solid var(--bd);position:relative;overflow:hidden}
+.tbar::before{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--gd),transparent)}
+.tlb{font-size:10px;color:var(--tx3);letter-spacing:2px;font-family:'JetBrains Mono',monospace;text-transform:uppercase}
+.tvl{font-size:22px;font-weight:800;color:var(--gd);font-family:'JetBrains Mono',monospace}
+/* DETAIL META */
+.dmg{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--sf2);border-radius:var(--r);border:1.5px solid var(--bd);margin-bottom:24px;overflow:hidden}
+.dmi{padding:15px 18px;border-right:1px solid var(--bd)}
+.dmi:last-child{border-right:none}
+.dmil{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.dmiv{color:var(--wh);font-weight:700;font-size:13px}
+.dsec{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.dsec::after{content:'';flex:1;height:1px;background:var(--bd)}
+/* CUSTOMER */
+.cust-hd{background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(79,142,247,.05));border:1.5px solid rgba(167,139,250,.2);border-radius:var(--r2);padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px}
+.cust-av{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--pu),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;flex-shrink:0}
+.cust-nm{font-size:20px;font-weight:800;color:var(--wh)}
+.cust-mt{font-size:12px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:3px}
+.cust-sts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.cust-sc{background:var(--sf);border:1.5px solid var(--bd);border-radius:var(--r);padding:14px 18px}
+.cust-sl{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:5px}
+.cust-sv{font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace}
+/* INSTALL BUTTON */
+.ibtn{background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-size:13px;font-weight:700;padding:10px 18px;border-radius:var(--r);border:none;box-shadow:0 4px 14px rgba(52,211,153,.3);transition:all .2s;cursor:pointer;display:flex;align-items:center;gap:7px}
+.ibtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(52,211,153,.45)}
+.ibtn.hidden{display:none}
+/* INSTALL MODAL */
+.inst-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(6px)}
+.inst-box{background:var(--sf2);border:1.5px solid var(--bd2);border-radius:var(--r2) var(--r2) 0 0;width:100%;max-width:480px;box-shadow:0 -16px 48px rgba(0,0,0,.6);padding:28px 28px 36px;animation:slideup .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.inst-ico{font-size:44px;text-align:center;margin-bottom:12px}
+.inst-title{font-size:18px;font-weight:800;color:var(--wh);text-align:center;margin-bottom:6px}
+.inst-sub{font-size:13px;color:var(--tx2);text-align:center;margin-bottom:22px;line-height:1.6}
+.inst-steps{background:var(--sf3);border-radius:var(--r);padding:16px 18px;margin-bottom:20px;border:1px solid var(--bd)}
+.inst-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.inst-step:last-child{margin-bottom:0}
+.inst-snum{width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.inst-stxt{font-size:13px;color:var(--tx2);line-height:1.5}
+.inst-stxt strong{color:var(--wh)}
+.inst-platform{display:flex;gap:8px;margin-bottom:20px}
+.inst-plt{flex:1;padding:10px 8px;border-radius:var(--r);border:1.5px solid var(--bd);background:var(--sf);text-align:center;cursor:pointer;transition:all .15s;font-size:12px;color:var(--tx2);font-weight:600}
+.inst-plt.active{border-color:var(--ac);background:var(--ag);color:var(--ac)}
+.inst-plt .pico{font-size:20px;display:block;margin-bottom:4px}
+.dt-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+.dt-box{background:var(--sf2);border:1.5px solid var(--bd2);border-radius:var(--r2);width:100%;max-width:520px;box-shadow:0 32px 80px rgba(0,0,0,.75);overflow:hidden}
+.dt-head{padding:22px 28px 18px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.dt-title{font-size:18px;font-weight:800;color:var(--wh)}
+.dt-sub{font-size:12px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.dt-close{background:none;border:none;color:var(--tx3);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:6px;line-height:1;transition:color .15s}
+.dt-close:hover{color:var(--rd)}
+.dt-body{padding:24px 28px}
+.dt-section{margin-bottom:22px;padding:20px;border-radius:var(--r);border:1.5px solid var(--bd);background:var(--sf)}
+.dt-section:last-child{margin-bottom:0}
+.dt-shead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dt-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.dt-ico-exp{background:rgba(79,142,247,.15)}
+.dt-ico-imp{background:rgba(52,211,153,.12)}
+.dt-ico-clr{background:rgba(240,90,90,.12)}
+.dt-stitle{font-size:14px;font-weight:700;color:var(--wh)}
+.dt-sdesc{font-size:12px;color:var(--tx3);line-height:1.6;margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+.dt-stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.dt-stat{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;text-align:center}
+.dt-stat-v{font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--ac)}
+.dt-stat-l{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.dt-file-label{display:flex;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--bd2);border-radius:var(--r);padding:20px;cursor:pointer;color:var(--tx2);font-size:13px;font-weight:600;transition:all .2s}
+.dt-file-label:hover{border-color:var(--gr);color:var(--gr);background:rgba(52,211,153,.05)}
+.dt-file-label input{display:none}
+#dt-file-name{font-size:11px;color:var(--tx3);font-family:'JetBrains Mono',monospace;margin-top:6px;text-align:center;min-height:16px}
+.bex{background:linear-gradient(135deg,var(--ac),#2563eb);color:#fff;box-shadow:0 4px 14px rgba(79,142,247,.3)}
+.bex:hover{box-shadow:0 6px 20px rgba(79,142,247,.5)}
+.bim{background:linear-gradient(135deg,var(--gr),#059669);color:#fff;box-shadow:0 4px 14px rgba(52,211,153,.25)}
+.bim:hover{box-shadow:0 6px 20px rgba(52,211,153,.4)}
+.brd{background:linear-gradient(135deg,var(--rd),#b91c1c);color:#fff;box-shadow:0 4px 14px rgba(240,90,90,.25)}
+.brd:hover{box-shadow:0 6px 20px rgba(240,90,90,.4)}
+#toast{position:fixed;bottom:28px;right:28px;z-index:9999;padding:13px 18px;border-radius:var(--r);font-size:13px;font-weight:700;opacity:0;transform:translateY(12px) scale(.97);transition:all .25s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:340px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(20px)}
+#toast.show{opacity:1;transform:translateY(0) scale(1)}
+#toast.tok{background:rgba(13,17,32,.95);border:1.5px solid rgba(79,142,247,.4);color:var(--wh)}
+#toast.tsc{background:rgba(13,30,22,.95);border:1.5px solid rgba(52,211,153,.4);color:var(--gr)}
+#toast.ter{background:rgba(30,13,13,.95);border:1.5px solid rgba(240,90,90,.4);color:var(--rd)}
+/* MODAL */
+.mbd{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.mol{background:var(--sf2);border:1.5px solid var(--bd2);border-radius:var(--r2);padding:28px;max-width:440px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.7)}
+.mtt{font-size:18px;font-weight:800;color:var(--wh);margin-bottom:10px}
+.mtx{color:var(--tx2);font-size:14px;margin-bottom:24px;line-height:1.7}
+.mac{display:flex;gap:10px;justify-content:flex-end}
+@media(max-width:900px){
+  header{padding:0 18px}main{padding:24px 18px}
+  .fgr{grid-template-columns:1fr}.dmg{grid-template-columns:1fr 1fr}
+  .dmi{border-bottom:1px solid var(--bd)}.sts{grid-template-columns:1fr 1fr}
+  .grd{grid-template-columns:1fr}.pt{font-size:22px}.fbd{padding:20px}
+  .cust-sts{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){.dmg{grid-template-columns:1fr}.sts{grid-template-columns:1fr}.cust-sts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="htop">
+    <div class="brand">
+      <div class="bico">📋</div>
+      <div><div class="bnm">Altius · DN Manager</div><div class="bsb">Delivery Note System</div><div style="font-size:9px;color:var(--wh);letter-spacing:1.2px;margin-top:1px;font-family:'JetBrains Mono',monospace">by HARISH CHURATHIL</div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="ibtn" id="btn-install-pwa">📲 Install App</button>
+      <button class="tbtn" id="btn-data-transfer">⇄ Data Transfer</button>
+      <button class="xbtn" id="btn-export-all">⬇ Export Excel</button>
+    </div>
+  </div>
+  <nav>
+    <button class="nvb on" data-view="notes">📋 Notes <span class="nbdg nac" id="cnt-notes">0</span></button>
+    <button class="nvb" data-view="products">📦 Products <span class="nbdg ngr" id="cnt-prods">0</span></button>
+    <button class="nvb" data-view="customers">👤 Customers <span class="nbdg npu" id="cnt-custs">0</span></button>
+  </nav>
+</header>
+<main id="M"></main>
+</div>
+<div id="toast"><span id="ti"></span><span id="tm"></span></div>
+
+<script>
+/* =========================================================
+   STORAGE
+   ========================================================= */
+var notes = (function(){try{return JSON.parse(localStorage.getItem('adn8_notes'))||[];}catch(e){return [];}})();
+var prods = (function(){try{return JSON.parse(localStorage.getItem('adn8_prods'))||[];}catch(e){return [];}})();
+
+function SN(){try{localStorage.setItem('adn8_notes',JSON.stringify(notes));}catch(e){}}
+function SP(){try{localStorage.setItem('adn8_prods',JSON.stringify(prods));}catch(e){}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+function uniqueCustomers(){
+  var seen={},out=[];
+  notes.forEach(function(n){var k=n.customer.trim().toLowerCase();if(!seen[k]){seen[k]=true;out.push(n.customer.trim());}});
+  return out;
+}
+
+/* =========================================================
+   STATE
+   ========================================================= */
+var curView='notes', curData=null;
+
+/* =========================================================
+   ROUTER
+   ========================================================= */
+function go(v,d){
+  curView=v; curData=(d===undefined?null:d);
+  document.querySelectorAll('.nvb').forEach(function(b){b.classList.remove('on');});
+  var maps={notes:'notes',create:'notes',detail:'notes',products:'products',customers:'customers',custdetail:'customers'};
+  document.querySelectorAll('.nvb').forEach(function(b){if(b.getAttribute('data-view')===maps[v])b.classList.add('on');});
+  draw();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function draw(){
+  var M=document.getElementById('M');
+  if(curView==='notes')      M.innerHTML=rNotes();
+  else if(curView==='products')   M.innerHTML=rProds();
+  else if(curView==='create')     M.innerHTML=rCreate();
+  else if(curView==='detail')     M.innerHTML=rDetail();
+  else if(curView==='customers')  M.innerHTML=rCustomers();
+  else if(curView==='custdetail') M.innerHTML=rCustDetail();
+  document.getElementById('cnt-notes').textContent=notes.length;
+  document.getElementById('cnt-prods').textContent=prods.length;
+  document.getElementById('cnt-custs').textContent=uniqueCustomers().length;
+  bindEvents();
+}
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+var _tt;
+function toast(msg,t){
+  var el=document.getElementById('toast');
+  document.getElementById('tm').textContent=msg;
+  document.getElementById('ti').textContent=(t==='sc'?'✅':t==='er'?'❌':'ℹ️');
+  el.className='show t'+(t||'ok');
+  clearTimeout(_tt); _tt=setTimeout(function(){el.classList.remove('show');},3200);
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+function confirmDel(title,body,cb){
+  var bd=document.createElement('div'); bd.className='mbd';
+  bd.innerHTML='<div class="mol"><div class="mtt">'+title+'</div><div class="mtx">'+body+'</div><div class="mac"><button class="btn bsc" id="_mc">Cancel</button><button class="btn bdn" id="_mo">Delete</button></div></div>';
+  document.body.appendChild(bd);
+  bd.querySelector('#_mc').onclick=function(){bd.remove();};
+  bd.querySelector('#_mo').onclick=function(){bd.remove();cb();};
+  bd.onclick=function(e){if(e.target===bd)bd.remove();};
+}
+
+/* =========================================================
+   UTILS
+   ========================================================= */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fd(d){if(!d)return'—';return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+function tot(n){return n.items.reduce(function(s,i){return s+(+i.qty)*(+i.price||0);},0);}
+
+/* =========================================================
+   NOTES VIEW
+   ========================================================= */
+function rNotes(){
+  var q=''; try{var e=document.getElementById('ns');if(e)q=e.value.toLowerCase();}catch(x){}
+  var fil=notes.filter(function(n){
+    return n.noteNumber.toLowerCase().indexOf(q)>-1||n.customer.toLowerCase().indexOf(q)>-1||(n.address||'').toLowerCase().indexOf(q)>-1;
+  });
+  var grand=notes.reduce(function(s,n){return s+tot(n);},0);
+  var stats='<div class="sts">'+
+    '<div class="sc"><div class="slb">Total Notes</div><div class="svl cac">'+notes.length+'</div><div class="ssb">delivery notes</div></div>'+
+    '<div class="sc"><div class="slb">Grand Total</div><div class="svl cgd">AED '+grand.toFixed(2)+'</div><div class="ssb">all notes</div></div>'+
+    '<div class="sc"><div class="slb">Products</div><div class="svl cgr">'+prods.length+'</div><div class="ssb">in catalogue</div></div>'+
+    '<div class="sc"><div class="slb">Customers</div><div class="svl cpu">'+uniqueCustomers().length+'</div><div class="ssb">unique</div></div>'+
+    '</div>';
+  var cards;
+  if(!fil.length){
+    cards=notes.length===0
+      ?'<div class="emp"><div class="eic">📋</div><div class="ett">No delivery notes yet</div><div class="etx">Create your first delivery note to get started</div><br/><button class="btn bpr" id="btn-go-create" style="margin-top:16px">＋ Create First Note</button></div>'
+      :'<div class="emp"><div class="eic">🔍</div><div class="ett">No results</div><div class="etx">Try a different search term</div></div>';
+  } else {
+    cards='<div class="grd">'+fil.map(noteCard).join('')+'</div>';
+  }
+  return '<div class="ph"><div><div class="pt">Delivery Notes</div><div class="ps">'+notes.length+' note'+(notes.length!==1?'s':'')+'</div></div>'+
+    '<div style="display:flex;gap:10px">'+
+    '<button class="btn bpu bsm" id="btn-export-all-pdf">📄 Export All PDF</button>'+
+    '<button class="btn bpr" id="btn-new-note">＋ New Delivery Note</button>'+
+    '</div></div>'+
+    stats+
+    '<div class="sw"><span class="si">🔍</span><input type="search" id="ns" placeholder="Search by note number, customer, address…" value="'+esc(q)+'" id="ns"/></div>'+
+    cards;
+}
+
+function noteCard(n){
+  var t=tot(n), c=n.items.length;
+  var sub=n.subDN?'<span style="font-size:12px;color:var(--tx3);font-weight:400;margin-left:6px">/ '+esc(n.subDN)+'</span>':'';
+  var subTag=n.subDN?'<span class="tag tpu">Ref: '+esc(n.subDN)+'</span>':'';
+  return '<div class="card">'+
+    '<div class="chd"><div>'+
+    '<div class="cno">'+esc(n.noteNumber)+sub+'</div>'+
+    '<div class="cnm">'+esc(n.customer)+'</div>'+
+    '</div>'+
+    '<button class="cdl btn-del-note" data-id="'+n.id+'" title="Delete">✕</button>'+
+    '</div>'+
+    '<div class="cmt">📅 '+fd(n.date)+(n.address?' · 📍 '+esc(n.address):'')+'</div>'+
+    '<div class="ctg"><span class="tag tbl">'+c+' item'+(c!==1?'s':'')+'</span>'+subTag+'</div>'+
+    '<div class="cft">'+
+    '<div><div class="ctl">Total Amount</div><div class="ctv">AED '+t.toFixed(2)+'</div></div>'+
+    '<button class="btn bsc bsm btn-view-note" data-id="'+n.id+'">View →</button>'+
+    '</div></div>';
+}
+
+/* =========================================================
+   PRODUCTS VIEW
+   ========================================================= */
+function rProds(){
+  var rows=prods.length===0
+    ?'<tr><td colspan="5" style="text-align:center;padding:48px;color:var(--tx3);font-family:\'JetBrains Mono\',monospace">No products yet — auto-saved when you create delivery notes</td></tr>'
+    :prods.map(function(p,i){
+      return '<tr>'+
+        '<td class="tdm tdc" style="color:var(--tx3)">'+(i+1)+'</td>'+
+        '<td class="tdn">'+esc(p.name)+'</td>'+
+        '<td><span class="tag tgy">'+esc(p.unit)+'</span></td>'+
+        '<td class="tda tdr">AED '+(+p.price||0).toFixed(2)+'</td>'+
+        '<td class="tdr"><span class="tag '+((p.usedCount||0)>3?'tbl':'tgy')+'">'+(p.usedCount||0)+'×</span></td>'+
+        '</tr>';
+    }).join('');
+  return '<div class="ph"><div><div class="pt">Product Catalogue</div><div class="ps">Auto-populated from delivery notes</div></div>'+
+    '<button class="btn bpu bsm" id="btn-export-prods-pdf">📄 Export PDF</button></div>'+
+    '<div class="tw"><table>'+
+    '<thead><tr><th>#</th><th>Product Name</th><th>Unit</th><th style="text-align:right">Last Price (AED)</th><th style="text-align:right">Used</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div>';
+}
+
+/* =========================================================
+   CUSTOMERS VIEW
+   ========================================================= */
+function rCustomers(){
+  var custs=uniqueCustomers();
+  var q=''; try{var e=document.getElementById('cs');if(e)q=e.value.toLowerCase();}catch(x){}
+  var fil=custs.filter(function(c){return c.toLowerCase().indexOf(q)>-1;});
+  var content;
+  if(!fil.length){
+    content=custs.length===0
+      ?'<div class="emp"><div class="eic">👤</div><div class="ett">No customers yet</div><div class="etx">Customers appear automatically when you create delivery notes</div></div>'
+      :'<div class="emp"><div class="eic">🔍</div><div class="ett">No results</div></div>';
+  } else {
+    content='<div class="grd">'+fil.map(function(c){
+      var cn=notes.filter(function(n){return n.customer.trim().toLowerCase()===c.trim().toLowerCase();});
+      var ct=cn.reduce(function(s,n){return s+tot(n);},0);
+      var ini=c.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
+      return '<div class="card" style="cursor:pointer">'+
+        '<div class="chd"><div style="display:flex;align-items:center;gap:12px">'+
+        '<div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--pu),#7c3aed);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">'+esc(ini)+'</div>'+
+        '<div><div class="cno" style="font-size:16px">'+esc(c)+'</div>'+
+        '<div class="cmt" style="margin-top:3px">'+cn.length+' delivery note'+(cn.length!==1?'s':'')+'</div>'+
+        '</div></div></div>'+
+        '<div class="cft">'+
+        '<div><div class="ctl">Total Business</div><div class="ctv">AED '+ct.toFixed(2)+'</div></div>'+
+        '<button class="btn bsc bsm btn-view-cust" data-cust="'+esc(c)+'">View →</button>'+
+        '</div></div>';
+    }).join('')+'</div>';
+  }
+  return '<div class="ph"><div><div class="pt">Customers</div><div class="ps">'+custs.length+' unique customer'+(custs.length!==1?'s':'')+'</div></div></div>'+
+    '<div class="sw"><span class="si">🔍</span><input type="search" id="cs" placeholder="Search customers…" value="'+esc(q)+'"/></div>'+
+    content;
+}
+
+function rCustDetail(){
+  var custName=curData;
+  if(!custName){go('customers');return'';}
+  var cn=notes.filter(function(n){return n.customer.trim().toLowerCase()===custName.trim().toLowerCase();});
+  cn=cn.slice().sort(function(a,b){return(parseInt(a.noteNumber.replace(/\D/g,''))||0)-(parseInt(b.noteNumber.replace(/\D/g,''))||0);});
+  var ct=cn.reduce(function(s,n){return s+tot(n);},0);
+  var ini=custName.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();
+  var last=cn.length?cn[cn.length-1]:null;
+  var rows=cn.map(function(n){
+    var t=tot(n);
+    return '<tr>'+
+      '<td class="tdm" style="color:var(--tx3)">'+fd(n.date)+'</td>'+
+      '<td class="tdn tdm">'+esc(n.noteNumber)+(n.subDN?'<span style="font-size:11px;color:var(--tx3);margin-left:6px">/ '+esc(n.subDN)+'</span>':'')+'</td>'+
+      '<td>'+esc(n.address||'—')+'</td>'+
+      '<td class="tdc">'+n.items.length+' items</td>'+
+      '<td class="tda tdr tdm">AED '+t.toFixed(2)+'</td>'+
+      '<td class="tdc"><button class="btn bsc bsm btn-view-note" data-id="'+n.id+'">View</button></td>'+
+      '</tr>';
+  }).join('');
+  return '<div class="ph">'+
+    '<div><div class="pt">'+esc(custName)+'</div><div class="ps">Customer delivery history</div></div>'+
+    '<div style="display:flex;gap:10px">'+
+    '<button class="btn bpu bsm" id="btn-export-cust-pdf">📄 Export PDF</button>'+
+    '<button class="btn bpu bsm" id="btn-export-cust">⬇ Export Customer Excel</button>'+
+    '<button class="btn bsc" id="btn-back-custs">← Back</button>'+
+    '</div></div>'+
+    '<div class="cust-hd">'+
+    '<div class="cust-av">'+esc(ini)+'</div>'+
+    '<div><div class="cust-nm">'+esc(custName)+'</div>'+
+    '<div class="cust-mt">'+cn.length+' delivery note'+(cn.length!==1?'s':'')+' · Total AED '+ct.toFixed(2)+'</div>'+
+    '</div></div>'+
+    '<div class="cust-sts">'+
+    '<div class="cust-sc"><div class="cust-sl">Total Notes</div><div class="cust-sv cac">'+cn.length+'</div></div>'+
+    '<div class="cust-sc"><div class="cust-sl">Total Business</div><div class="cust-sv cgd">AED '+ct.toFixed(2)+'</div></div>'+
+    '<div class="cust-sc"><div class="cust-sl">Last Note Date</div><div class="cust-sv" style="font-size:14px;margin-top:4px">'+(last?fd(last.date):'—')+'</div></div>'+
+    '</div>'+
+    '<div class="dsec" style="margin-bottom:14px">All Delivery Notes</div>'+
+    '<div class="tw"><table>'+
+    '<thead><tr><th>Date</th><th>Note #</th><th>Address</th><th style="text-align:center">Items</th><th style="text-align:right">Total (AED)</th><th></th></tr></thead>'+
+    '<tbody>'+(rows||'<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--tx3)">No notes found</td></tr>')+'</tbody>'+
+    '</table></div>';
+}
+
+/* =========================================================
+   CREATE FORM
+   ========================================================= */
+var FI=[], FD={};
+
+function initF(){
+  var today=new Date().toISOString().split('T')[0];
+  var nums=notes.map(function(n){return parseInt(n.noteNumber.replace(/\D/g,''))||0;});
+  var next=nums.length?Math.max.apply(null,nums)+1:1;
+  FD={noteNumber:'DN-'+String(next).padStart(3,'0'),subDN:'',date:today,customer:'',address:''};
+  FI=[{id:uid(),name:'',qty:1,unit:'pcs',price:''}];
+}
+
+function rCreate(){
+  if(!FI.length)initF();
+  var t=FI.reduce(function(s,i){return s+(+i.qty)*(+i.price||0);},0);
+  return '<div class="ph">'+
+    '<div><div class="pt">New Delivery Note</div><div class="ps">Fill in the details below</div></div>'+
+    '<button class="btn bsc" id="btn-back-notes">← Back</button>'+
+    '</div>'+
+    '<div class="fc">'+
+    '<div class="fhd"><span style="font-size:13px;color:var(--tx3);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px">NEW DELIVERY NOTE</span></div>'+
+    '<div class="fbd">'+
+    '<div class="fsc"><div class="flb">Note Details</div>'+
+    '<div class="fgr">'+
+    '<div class="fg"><label class="lb">Note Number *</label><input type="text" id="fno" value="'+esc(FD.noteNumber)+'" placeholder="e.g. DN-001"/></div>'+
+    '<div class="fg"><label class="lb">Sub / Reference No.</label><input type="text" id="fsd" value="'+esc(FD.subDN)+'" placeholder="Optional reference"/></div>'+
+    '<div class="fg"><label class="lb">Date</label><input type="date" id="fdt" value="'+FD.date+'"/></div>'+
+    '<div class="fg"><label class="lb">Customer / Company *</label>'+
+    '<div class="acw"><input type="text" id="fcu" value="'+esc(FD.customer)+'" placeholder="Type customer name…" autocomplete="off"/>'+
+    '<div class="drop" id="cdd"></div></div></div>'+
+    '<div class="fg" style="grid-column:1/-1"><label class="lb">Delivery Address</label><input type="text" id="fad" value="'+esc(FD.address)+'" placeholder="Site or delivery address"/></div>'+
+    '</div></div>'+
+    '<div class="fsc"><div class="flb">Products</div>'+
+    '<div class="tw ac-wrap"><table style="overflow:visible">'+
+    '<colgroup><col style="width:33%"><col style="width:10%"><col style="width:11%"><col style="width:15%"><col style="width:16%"><col style="width:15%"></colgroup>'+
+    '<thead><tr><th>Product Name</th><th>Qty</th><th>Unit</th><th style="text-align:right">Unit Price (AED)</th><th style="text-align:right">Line Total (AED)</th><th></th></tr></thead>'+
+    '<tbody id="IB">'+FI.map(rowHtml).join('')+'</tbody>'+
+    '</table></div>'+
+    '<button class="btn bgh" id="btn-add-row">＋ Add Product Line</button>'+
+    '</div>'+
+    '<div class="tbar"><div class="tlb">Total Amount</div><div class="tvl" id="ft">AED '+t.toFixed(2)+'</div></div>'+
+    '<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px">'+
+    '<button class="btn bsc" id="btn-cancel">Cancel</button>'+
+    '<button class="btn bpr" id="btn-save-note">✓ Save Delivery Note</button>'+
+    '</div></div></div>';
+}
+
+/* Build a single product row — NO inline JS, only data-id */
+function rowHtml(item){
+  var lt=((+item.qty)*(+item.price||0)).toFixed(2);
+  var units=['pcs','kg','ltr','bag','roll','box','m²','m³','set','ton','drum','pail'];
+  var opts=units.map(function(u){return '<option value="'+u+'"'+(item.unit===u?' selected':'')+'>'+u+'</option>';}).join('');
+  return '<tr id="R'+item.id+'">'+
+    '<td><div class="acw">'+
+    '<input type="text" id="IN'+item.id+'" class="prod-name-inp" data-id="'+item.id+'" value="'+esc(item.name)+'" placeholder="Click or type to search products…" autocomplete="off"/>'+
+    '<div class="drop prod-drop" id="DD'+item.id+'"></div>'+
+    '</div></td>'+
+    '<td><input type="number" id="IQ'+item.id+'" class="qty-inp" data-id="'+item.id+'" value="'+item.qty+'" min="0" step="any" style="text-align:center"/></td>'+
+    '<td><select id="IU'+item.id+'" class="unit-sel" data-id="'+item.id+'">'+opts+'</select></td>'+
+    '<td><input type="number" id="IP'+item.id+'" class="price-inp" data-id="'+item.id+'" value="'+item.price+'" min="0" step="0.01" placeholder="0.00" style="text-align:right"/></td>'+
+    '<td class="tda tdr tdm" id="IL'+item.id+'">'+lt+'</td>'+
+    '<td class="tdc"><button class="rdl btn-rem-row" data-id="'+item.id+'">✕</button></td>'+
+    '</tr>';
+}
+
+/* =========================================================
+   DETAIL VIEW
+   ========================================================= */
+function rDetail(){
+  var note=curData; if(!note){go('notes');return'';}
+  var t=tot(note);
+  var rows=note.items.map(function(i){
+    return '<tr>'+
+      '<td class="tdn">'+esc(i.name)+'</td>'+
+      '<td class="tdm tdc">'+i.qty+'</td>'+
+      '<td><span class="tag tgy">'+esc(i.unit)+'</span></td>'+
+      '<td class="tdm tdr">AED '+(+i.price||0).toFixed(2)+'</td>'+
+      '<td class="tda tdm tdr">AED '+((+i.qty)*(+i.price||0)).toFixed(2)+'</td>'+
+      '</tr>';
+  }).join('');
+  var sub=note.subDN?' <span style="font-size:16px;color:var(--tx3)">/ '+esc(note.subDN)+'</span>':'';
+  return '<div class="ph">'+
+    '<div><div class="pt">'+esc(note.noteNumber)+sub+'</div><div class="ps">'+esc(note.customer)+' · '+fd(note.date)+'</div></div>'+
+    '<div style="display:flex;gap:10px">'+
+    '<button class="btn bpu bsm" id="btn-export-note-pdf">📄 Export PDF</button>'+
+    '<button class="btn bdn bsm btn-del-note" data-id="'+note.id+'">🗑 Delete</button>'+
+    '<button class="btn bsc" id="btn-back-notes">← Back</button>'+
+    '</div></div>'+
+    '<div class="fc">'+
+    '<div class="fhd"><span style="font-size:13px;color:var(--tx3);font-family:\'JetBrains Mono\',monospace;letter-spacing:1px">NOTE INFORMATION</span></div>'+
+    '<div class="fbd">'+
+    '<div class="dmg">'+
+    '<div class="dmi"><div class="dmil">Note #</div><div class="dmiv tdm">'+esc(note.noteNumber)+'</div></div>'+
+    '<div class="dmi"><div class="dmil">Sub / Ref</div><div class="dmiv tdm">'+esc(note.subDN||'—')+'</div></div>'+
+    '<div class="dmi"><div class="dmil">Date</div><div class="dmiv">'+fd(note.date)+'</div></div>'+
+    '<div class="dmi"><div class="dmil">Customer</div><div class="dmiv">'+esc(note.customer)+'</div></div>'+
+    '<div class="dmi"><div class="dmil">Address</div><div class="dmiv">'+esc(note.address||'—')+'</div></div>'+
+    '</div>'+
+    '<div class="dsec" style="margin-bottom:14px">Products</div>'+
+    '<div class="tw"><table>'+
+    '<thead><tr><th>Product</th><th style="text-align:center">Qty</th><th>Unit</th><th style="text-align:right">Unit Price</th><th style="text-align:right">Line Total</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div>'+
+    '<div class="tbar"><div class="tlb">Total Amount</div><div class="tvl">AED '+t.toFixed(2)+'</div></div>'+
+    '</div></div>';
+}
+
+/* =========================================================
+   EVENT BINDING  — runs after every draw()
+   ========================================================= */
+function bindEvents(){
+  /* NAV */
+  document.querySelectorAll('.nvb').forEach(function(b){
+    b.onclick=function(){go(b.getAttribute('data-view'));};
+  });
+
+  /* HEADER EXPORT */
+  var bxa=document.getElementById('btn-export-all');
+  if(bxa) bxa.onclick=exportAllExcel;
+  var bdt=document.getElementById('btn-data-transfer');
+  if(bdt) bdt.onclick=openDataTransfer;
+
+  /* NOTES VIEW */
+  var bnn=document.getElementById('btn-new-note');
+  if(bnn) bnn.onclick=function(){FI=[];go('create');};
+  var bgc=document.getElementById('btn-go-create');
+  if(bgc) bgc.onclick=function(){FI=[];go('create');};
+  var ns=document.getElementById('ns');
+  if(ns) ns.oninput=draw;
+  var bap=document.getElementById('btn-export-all-pdf');
+  if(bap) bap.onclick=exportAllNotesPDF;
+
+  /* NOTE CARDS — view + delete */
+  document.querySelectorAll('.btn-view-note').forEach(function(b){
+    b.onclick=function(e){
+      e.stopPropagation();
+      var id=b.getAttribute('data-id');
+      var n=notes.find(function(x){return x.id===id;});
+      if(n){curData=n;curView='detail';draw();}
+    };
+  });
+  document.querySelectorAll('.btn-del-note').forEach(function(b){
+    b.onclick=function(e){
+      e.stopPropagation();
+      var id=b.getAttribute('data-id');
+      var n=notes.find(function(x){return x.id===id;});
+      if(!n)return;
+      confirmDel('Delete Note','Delete note <strong>'+esc(n.noteNumber)+'</strong> for <strong>'+esc(n.customer)+'</strong>?<br/>This cannot be undone.',function(){
+        notes=notes.filter(function(x){return x.id!==id;}); SN();
+        if(curView==='detail')go('notes'); else draw();
+        toast('Delivery note deleted');
+      });
+    };
+  });
+
+  /* BACK BUTTONS */
+  var bbn=document.getElementById('btn-back-notes');
+  if(bbn) bbn.onclick=function(){go('notes');};
+  var bbc=document.getElementById('btn-back-custs');
+  if(bbc) bbc.onclick=function(){go('customers');};
+  var bcan=document.getElementById('btn-cancel');
+  if(bcan) bcan.onclick=function(){go('notes');};
+
+  /* CUSTOMERS VIEW */
+  var cs=document.getElementById('cs');
+  if(cs) cs.oninput=draw;
+  document.querySelectorAll('.btn-view-cust').forEach(function(b){
+    b.onclick=function(e){
+      e.stopPropagation();
+      go('custdetail',b.getAttribute('data-cust'));
+    };
+  });
+
+  /* CUSTOMER DETAIL */
+  var bec=document.getElementById('btn-export-cust');
+  if(bec) bec.onclick=function(){exportCustExcel(curData);};
+  var becp=document.getElementById('btn-export-cust-pdf');
+  if(becp) becp.onclick=function(){exportCustPDF(curData);};
+
+  /* PRODUCTS PDF */
+  var bpp=document.getElementById('btn-export-prods-pdf');
+  if(bpp) bpp.onclick=exportProdsPDF;
+
+  /* NOTE DETAIL PDF */
+  var bnp=document.getElementById('btn-export-note-pdf');
+  if(bnp) bnp.onclick=function(){exportNotePDF(curData);};
+
+  /* CREATE FORM */
+  if(curView==='create'){
+    bindFormEvents();
+  }
+}
+
+/* =========================================================
+   FORM EVENT BINDING
+   ========================================================= */
+function bindFormEvents(){
+  /* Save / add row */
+  var bsave=document.getElementById('btn-save-note');
+  if(bsave) bsave.onclick=saveN;
+  var badd=document.getElementById('btn-add-row');
+  if(badd) badd.onclick=addRow;
+
+  /* Customer autocomplete */
+  var fcu=document.getElementById('fcu');
+  if(fcu){
+    fcu.oninput=function(){FD.customer=fcu.value; showCustDrop(fcu.value);};
+    fcu.onfocus=function(){showCustDrop(fcu.value);};
+    fcu.onblur=function(){setTimeout(function(){var d=document.getElementById('cdd');if(d)d.style.display='none';},260);};
+  }
+
+  /* Product name inputs */
+  document.querySelectorAll('.prod-name-inp').forEach(function(inp){
+    var id=inp.getAttribute('data-id');
+    inp.oninput=function(){
+      var item=FI.find(function(i){return i.id===id;});
+      if(item) item.name=inp.value;
+      showProdDrop(id, inp.value);
+    };
+    inp.onfocus=function(){
+      showProdDrop(id, inp.value);
+    };
+    inp.onblur=function(){
+      setTimeout(function(){
+        var d=document.getElementById('DD'+id);
+        if(d) d.style.display='none';
+      },260);
+    };
+  });
+
+  /* Qty / unit / price inputs */
+  document.querySelectorAll('.qty-inp,.price-inp').forEach(function(inp){
+    var id=inp.getAttribute('data-id');
+    inp.oninput=function(){updateItem(id);};
+  });
+  document.querySelectorAll('.unit-sel').forEach(function(sel){
+    var id=sel.getAttribute('data-id');
+    sel.onchange=function(){updateItem(id);};
+  });
+
+  /* Delete row buttons */
+  document.querySelectorAll('.btn-rem-row').forEach(function(b){
+    var id=b.getAttribute('data-id');
+    b.onclick=function(){remRow(id);};
+  });
+}
+
+/* =========================================================
+   CUSTOMER AUTOCOMPLETE
+   ========================================================= */
+function showCustDrop(val){
+  var dd=document.getElementById('cdd'); if(!dd)return;
+  var custs=uniqueCustomers();
+  if(!custs.length){dd.style.display='none';return;}
+  var q=(val||'').trim().toLowerCase();
+  var m=q?custs.filter(function(c){return c.toLowerCase().indexOf(q)>-1;}):custs.slice();
+  if(!m.length){dd.style.display='none';return;}
+  dd.innerHTML=m.map(function(c){
+    var cnt=notes.filter(function(n){return n.customer.trim().toLowerCase()===c.trim().toLowerCase();}).length;
+    return '<div class="ddi cust-opt" data-name="'+esc(c)+'">'+
+      '<span class="ddn">'+esc(c)+'</span>'+
+      '<span class="ddm">'+cnt+' note'+(cnt!==1?'s':'')+'</span></div>';
+  }).join('');
+  /* bind clicks */
+  dd.querySelectorAll('.cust-opt').forEach(function(d){
+    d.onmousedown=function(e){
+      e.preventDefault();
+      var name=d.getAttribute('data-name');
+      FD.customer=name;
+      var inp=document.getElementById('fcu'); if(inp) inp.value=name;
+      dd.style.display='none';
+      /* auto-fill address from last note */
+      var prev=notes.find(function(n){return n.customer.trim().toLowerCase()===name.trim().toLowerCase();});
+      if(prev&&prev.address){
+        FD.address=prev.address;
+        var adr=document.getElementById('fad'); if(adr) adr.value=prev.address;
+      }
+    };
+  });
+  dd.style.display='block';
+}
+
+/* =========================================================
+   PRODUCT AUTOCOMPLETE
+   ========================================================= */
+function showProdDrop(id, val){
+  var dd=document.getElementById('DD'+id); if(!dd)return;
+  if(!prods.length){dd.style.display='none';return;}
+  var q=(val||'').trim().toLowerCase();
+  /* show ALL when empty; filter when typing */
+  var m=q ? prods.filter(function(p){return p.name.toLowerCase().indexOf(q)>-1;}) : prods.slice();
+  if(!m.length){dd.style.display='none';return;}
+  dd.innerHTML=m.map(function(p){
+    return '<div class="ddi prod-opt" data-name="'+esc(p.name)+'" data-unit="'+esc(p.unit)+'" data-price="'+(p.price||0)+'">'+
+      '<span class="ddn">'+esc(p.name)+'</span>'+
+      '<span class="ddm">'+esc(p.unit)+' · AED '+(+p.price||0).toFixed(2)+'</span></div>';
+  }).join('');
+  /* bind clicks */
+  dd.querySelectorAll('.prod-opt').forEach(function(opt){
+    opt.onmousedown=function(e){
+      e.preventDefault();
+      var name=opt.getAttribute('data-name');
+      var unit=opt.getAttribute('data-unit');
+      var price=opt.getAttribute('data-price');
+      var item=FI.find(function(i){return i.id===id;});
+      if(item){item.name=name;item.unit=unit;item.price=price;}
+      var ni=document.getElementById('IN'+id); if(ni) ni.value=name;
+      var ui=document.getElementById('IU'+id); if(ui) ui.value=unit;
+      var pi=document.getElementById('IP'+id); if(pi) pi.value=price;
+      dd.style.display='none';
+      updateLT(id);
+    };
+  });
+  dd.style.display='block';
+}
+
+/* =========================================================
+   FORM LOGIC
+   ========================================================= */
+function updateItem(id){
+  var item=FI.find(function(i){return i.id===id;});
+  if(!item)return;
+  var q=document.getElementById('IQ'+id); if(q) item.qty=q.value;
+  var u=document.getElementById('IU'+id); if(u) item.unit=u.value;
+  var p=document.getElementById('IP'+id); if(p) item.price=p.value;
+  updateLT(id);
+}
+function updateLT(id){
+  var item=FI.find(function(i){return i.id===id;});
+  if(!item)return;
+  var el=document.getElementById('IL'+id);
+  if(el) el.textContent=((+item.qty)*(+item.price||0)).toFixed(2);
+  updateTotal();
+}
+function updateTotal(){
+  var t=FI.reduce(function(s,i){return s+(+i.qty)*(+i.price||0);},0);
+  var el=document.getElementById('ft'); if(el) el.textContent='AED '+t.toFixed(2);
+}
+function addRow(){
+  syncForm();
+  var item={id:uid(),name:'',qty:1,unit:'pcs',price:''};
+  FI.push(item);
+  var tb=document.getElementById('IB');
+  if(tb){
+    var tmp=document.createElement('tbody');
+    tmp.innerHTML=rowHtml(item);
+    var tr=tmp.firstElementChild;
+    tb.appendChild(tr);
+    /* bind events for new row only */
+    var inp=tr.querySelector('.prod-name-inp');
+    if(inp){
+      var rid=item.id;
+      inp.oninput=function(){item.name=inp.value; showProdDrop(rid,inp.value);};
+      inp.onfocus=function(){showProdDrop(rid,inp.value);};
+      inp.onblur=function(){setTimeout(function(){var d=document.getElementById('DD'+rid);if(d)d.style.display='none';},260);};
+    }
+    tr.querySelectorAll('.qty-inp,.price-inp').forEach(function(i2){
+      i2.oninput=function(){updateItem(item.id);};
+    });
+    tr.querySelectorAll('.unit-sel').forEach(function(s){
+      s.onchange=function(){updateItem(item.id);};
+    });
+    var db=tr.querySelector('.btn-rem-row');
+    if(db) db.onclick=function(){remRow(item.id);};
+  }
+}
+function remRow(id){
+  if(FI.length<=1){toast('At least one product is required','er');return;}
+  FI=FI.filter(function(i){return i.id!==id;});
+  var row=document.getElementById('R'+id); if(row) row.remove();
+  updateTotal();
+}
+function syncForm(){
+  var e;
+  e=document.getElementById('fno'); if(e) FD.noteNumber=e.value||FD.noteNumber;
+  e=document.getElementById('fsd'); if(e) FD.subDN=e.value;
+  e=document.getElementById('fdt'); if(e) FD.date=e.value||FD.date;
+  e=document.getElementById('fcu'); if(e) FD.customer=e.value||FD.customer;
+  e=document.getElementById('fad'); if(e) FD.address=e.value||FD.address;
+  FI.forEach(function(item){
+    var n=document.getElementById('IN'+item.id); if(n) item.name=n.value||item.name;
+    var q=document.getElementById('IQ'+item.id); if(q) item.qty=q.value;
+    var u=document.getElementById('IU'+item.id); if(u) item.unit=u.value;
+    var p=document.getElementById('IP'+item.id); if(p) item.price=p.value;
+  });
+}
+function saveN(){
+  syncForm();
+  if(!FD.noteNumber.trim()){toast('Please enter a Note Number','er');return;}
+  if(!FD.customer.trim()){toast('Please enter a Customer name','er');return;}
+  var valid=FI.filter(function(i){return i.name.trim();});
+  if(!valid.length){toast('Add at least one product','er');return;}
+  if(notes.find(function(n){return n.noteNumber.toLowerCase()===FD.noteNumber.trim().toLowerCase();})){
+    toast('Note number already exists','er');return;
+  }
+  var np=0;
+  valid.forEach(function(item){
+    var ex=prods.find(function(p){return p.name.toLowerCase()===item.name.trim().toLowerCase();});
+    if(ex){ex.price=item.price;ex.unit=item.unit;ex.usedCount=(ex.usedCount||0)+1;}
+    else{prods.push({id:uid(),name:item.name.trim(),unit:item.unit,price:item.price,usedCount:1});np++;}
+  });
+  SP();
+  var note={id:uid(),noteNumber:FD.noteNumber.trim(),subDN:FD.subDN.trim(),date:FD.date,customer:FD.customer.trim(),address:FD.address.trim(),
+    items:valid.map(function(i){return{id:i.id,name:i.name.trim(),qty:i.qty,unit:i.unit,price:i.price};}),createdAt:new Date().toISOString()};
+  notes.unshift(note); SN();
+  FI=[];
+  toast(np>0?'Saved! '+np+' new product'+(np>1?'s':'')+' added':'Delivery note saved!','sc');
+  go('notes');
+}
+
+/* =========================================================
+   EXCEL HELPERS
+   ========================================================= */
+function buildRows(noteList){
+  var r=[];
+  noteList.forEach(function(n){
+    var nt=tot(n);
+    r.push([fd(n.date), n.noteNumber, n.subDN||'', n.customer, n.address||'']);
+    r.push(['#','Product Name','Qty','Unit','Unit Price (AED)','Amount (AED)']);
+    n.items.forEach(function(item,idx){
+      r.push([idx+1, item.name, +item.qty, item.unit,
+        +Number(item.price||0).toFixed(2),
+        +Number((+item.qty)*(+item.price||0)).toFixed(2)]);
+    });
+    r.push(['','','','','Net Total (AED)', +nt.toFixed(2)]);
+    r.push([]);r.push([]);
+  });
+  return r;
+}
+var COLS=[{wch:14},{wch:12},{wch:12},{wch:28},{wch:28},{wch:18},{wch:16}];
+
+/* EXPORT ALL */
+function exportAllExcel(){
+  if(!notes.length&&!prods.length){toast('Nothing to export','er');return;}
+  var wb=XLSX.utils.book_new();
+  var sorted=notes.slice().sort(function(a,b){return(parseInt(a.noteNumber.replace(/\D/g,''))||0)-(parseInt(b.noteNumber.replace(/\D/g,''))||0);});
+
+  var r=[['ALTIUS INDUSTRIES LLC'],['Exported: '+new Date().toLocaleString('en-GB')],[]].concat(buildRows(sorted));
+  var ws1=XLSX.utils.aoa_to_sheet(r); ws1['!cols']=COLS;
+  XLSX.utils.book_append_sheet(wb,ws1,'Delivery Notes');
+
+  var pr=[['ALTIUS INDUSTRIES LLC — PRODUCT CATALOGUE'],['Exported: '+new Date().toLocaleString('en-GB')],[],['#','Product Name','Unit','Last Price (AED)','Times Used']];
+  prods.forEach(function(p,i){pr.push([i+1,p.name,p.unit,+Number(p.price||0).toFixed(2),p.usedCount||0]);});
+  var ws2=XLSX.utils.aoa_to_sheet(pr); ws2['!cols']=[{wch:5},{wch:36},{wch:10},{wch:18},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Product Catalogue');
+
+  var custs=uniqueCustomers();
+  var sr=[['ALTIUS INDUSTRIES LLC — CUSTOMER SUMMARY'],['Exported: '+new Date().toLocaleString('en-GB')],[],['Customer','Total Notes','Total (AED)','Last Note Date']];
+  custs.forEach(function(c){
+    var cn=notes.filter(function(n){return n.customer.trim().toLowerCase()===c.trim().toLowerCase();});
+    var ct=cn.reduce(function(s,n){return s+tot(n);},0);
+    var last=cn.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);})[0];
+    sr.push([c,cn.length,+ct.toFixed(2),last?fd(last.date):'—']);
+  });
+  var ws3=XLSX.utils.aoa_to_sheet(sr); ws3['!cols']=[{wch:28},{wch:14},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws3,'Customer Summary');
+
+  XLSX.writeFile(wb,'Altius_DeliveryNotes_'+new Date().toISOString().split('T')[0]+'.xlsx');
+  toast('Excel exported!','sc');
+}
+
+/* EXPORT SINGLE CUSTOMER */
+function exportCustExcel(custName){
+  if(!custName){toast('No customer selected','er');return;}
+  var cn=notes.filter(function(n){return n.customer.trim().toLowerCase()===custName.trim().toLowerCase();});
+  if(!cn.length){toast('No notes for this customer','er');return;}
+  cn=cn.slice().sort(function(a,b){return(parseInt(a.noteNumber.replace(/\D/g,''))||0)-(parseInt(b.noteNumber.replace(/\D/g,''))||0);});
+  var ct=cn.reduce(function(s,n){return s+tot(n);},0);
+
+  var wb=XLSX.utils.book_new();
+  var r=[
+    ['ALTIUS INDUSTRIES LLC'],
+    ['Customer: '+custName],
+    ['Exported: '+new Date().toLocaleString('en-GB')],
+    []
+  ].concat(buildRows(cn));
+  r.push(['','','','','Grand Total (AED)', +ct.toFixed(2)]);
+
+  var ws=XLSX.utils.aoa_to_sheet(r); ws['!cols']=COLS;
+  XLSX.utils.book_append_sheet(wb,ws,'Delivery Notes');
+  XLSX.writeFile(wb,'Altius_'+custName.replace(/[^a-zA-Z0-9]/g,'_')+'_'+new Date().toISOString().split('T')[0]+'.xlsx');
+  toast('Customer Excel exported!','sc');
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+/* =========================================================
+   PDF EXPORTS
+   ========================================================= */
+
+/* shared PDF header */
+function pdfHeader(doc, title, subtitle){
+  var pw = doc.internal.pageSize.getWidth();
+  /* dark header bar */
+  doc.setFillColor(13,17,32);
+  doc.rect(0,0,pw,28,'F');
+  doc.setFillColor(79,142,247);
+  doc.rect(0,26,pw,2,'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.setTextColor(238,242,255);
+  doc.text('ALTIUS INDUSTRIES LLC', 14, 11);
+  doc.setFontSize(9);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(122,144,181);
+  doc.text(title, 14, 20);
+  doc.setFontSize(8);
+  doc.setTextColor(61,80,112);
+  doc.text(subtitle, pw-14, 20, {align:'right'});
+  return 36; /* y after header */
+}
+
+/* footer on every page */
+function pdfFooter(doc){
+  var pw = doc.internal.pageSize.getWidth();
+  var ph = doc.internal.pageSize.getHeight();
+  var pages = doc.internal.getNumberOfPages();
+  for(var i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFillColor(13,17,32);
+    doc.rect(0,ph-10,pw,10,'F');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(61,80,112);
+    doc.text('Altius Industries LLC · DN Manager · by Harish Churathil', 14, ph-3);
+    doc.text('Page '+i+' of '+pages, pw-14, ph-3, {align:'right'});
+  }
+}
+
+/* EXPORT PRODUCTS PDF */
+function exportProdsPDF(){
+  if(!prods.length){toast('No products to export','er');return;}
+  var doc = new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw = doc.internal.pageSize.getWidth();
+  var ph = doc.internal.pageSize.getHeight();
+
+  function drawPage(){
+    /* thin top border line */
+    doc.setDrawColor(180,180,180);
+    doc.setLineWidth(0.5);
+    doc.line(14,12,pw-14,12);
+    /* company name */
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.setTextColor(30,30,30);
+    doc.text('ALTIUS INDUSTRIES LLC',pw/2,9,{align:'center'});
+    /* bottom border */
+    doc.line(14,ph-14,pw-14,ph-14);
+  }
+
+  drawPage();
+
+  /* Title */
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(30,30,30);
+  doc.text('PRODUCT CATALOGUE',pw/2,22,{align:'center'});
+
+  /* underline */
+  doc.setDrawColor(30,30,30);
+  doc.setLineWidth(0.4);
+  doc.line(pw/2-28,23.5,pw/2+28,23.5);
+
+  /* meta line */
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100,100,100);
+  doc.text('Date: '+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}), 14, 30);
+  doc.text('Total Products: '+prods.length, pw-14, 30, {align:'right'});
+
+  /* separator */
+  doc.setDrawColor(180,180,180);
+  doc.setLineWidth(0.3);
+  doc.line(14,33,pw-14,33);
+
+  /* table */
+  var body = prods.map(function(p,i){
+    return [String(i+1), p.name, p.unit, 'AED '+(+p.price||0).toFixed(2)];
+  });
+
+  doc.autoTable({
+    startY: 36,
+    head:[['#','Product Name','Unit','Price (AED)']],
+    body: body,
+    margin:{left:14,right:14,bottom:20},
+    styles:{
+      font:'helvetica',
+      fontSize:9,
+      cellPadding:{top:4,bottom:4,left:4,right:4},
+      textColor:[30,30,30],
+      fillColor:[255,255,255],
+      lineColor:[210,210,210],
+      lineWidth:0.3
+    },
+    headStyles:{
+      fillColor:[245,245,245],
+      textColor:[30,30,30],
+      fontSize:8.5,
+      fontStyle:'bold',
+      halign:'left',
+      lineColor:[180,180,180],
+      lineWidth:0.4
+    },
+    alternateRowStyles:{fillColor:[250,250,250]},
+    columnStyles:{
+      0:{cellWidth:12,halign:'center',textColor:[140,140,140]},
+      1:{cellWidth:'auto',fontStyle:'bold'},
+      2:{cellWidth:22,halign:'center'},
+      3:{cellWidth:36,halign:'right'}
+    },
+    didDrawPage: function(){
+      drawPage();
+      /* page number */
+      var pages = doc.internal.getNumberOfPages();
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(140,140,140);
+      doc.text('Page '+doc.internal.getCurrentPageInfo().pageNumber+' of '+pages, pw/2, ph-8, {align:'center'});
+      doc.text('Altius Industries LLC · by Harish Churathil', pw/2, ph-4, {align:'center'});
+    }
+  });
+
+  /* final page numbers */
+  var total = doc.internal.getNumberOfPages();
+  for(var p2=1;p2<=total;p2++){
+    doc.setPage(p2);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(140,140,140);
+    doc.text('Page '+p2+' of '+total, pw/2, ph-8, {align:'center'});
+    doc.text('Altius Industries LLC · by Harish Churathil', pw/2, ph-4, {align:'center'});
+  }
+
+  doc.save('Altius_Products_'+new Date().toISOString().split('T')[0]+'.pdf');
+  toast('Products PDF exported!','sc');
+}
+
+
+
+/* EXPORT ALL DELIVERY NOTES PDF */
+function exportAllNotesPDF(){
+  if(!notes.length){toast('No delivery notes to export','er');return;}
+  var sorted=notes.slice().sort(function(a,b){
+    return (parseInt(a.noteNumber.replace(/[^0-9]/g,''))||0)-(parseInt(b.noteNumber.replace(/[^0-9]/g,''))||0);
+  });
+  var grand=sorted.reduce(function(s,n){return s+tot(n);},0);
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=doc.internal.pageSize.getWidth();
+  var ph=doc.internal.pageSize.getHeight();
+
+  function drawPageFrame(){
+    doc.setDrawColor(180,180,180);
+    doc.setLineWidth(0.5);
+    doc.line(14,12,pw-14,12);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.setTextColor(20,20,20);
+    doc.text('ALTIUS INDUSTRIES LLC',pw/2,9,{align:'center'});
+    doc.line(14,ph-14,pw-14,ph-14);
+  }
+
+  /* ====================================================
+     PAGE 1 — COVER / SUMMARY
+     ==================================================== */
+  drawPageFrame();
+
+  /* main title */
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.setTextColor(20,20,20);
+  doc.text('DELIVERY NOTES REGISTER',pw/2,22,{align:'center'});
+  doc.setDrawColor(30,30,30);
+  doc.setLineWidth(0.5);
+  doc.line(pw/2-38,23.5,pw/2+38,23.5);
+
+  /* export date */
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(120,120,120);
+  doc.text('Exported: '+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}),pw/2,29,{align:'center'});
+
+  /* summary stat boxes */
+  var bw=(pw-28-9)/4;
+  var stats=[
+    {l:'Total Notes',    v:String(sorted.length)},
+    {l:'Grand Total',    v:'AED '+grand.toFixed(2)},
+    {l:'Customers',      v:String(uniqueCustomers().length)},
+    {l:'Products',       v:String(prods.length)}
+  ];
+  var bsy=33;
+  stats.forEach(function(s,i){
+    var bx=14+i*(bw+3);
+    doc.setDrawColor(180,180,180);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(bx,bsy,bw,16,1,1,'S');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.setTextColor(20,20,20);
+    doc.text(s.v,bx+bw/2,bsy+7.5,{align:'center'});
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(120,120,120);
+    doc.text(s.l,bx+bw/2,bsy+13,{align:'center'});
+  });
+
+  /* separator */
+  doc.setDrawColor(180,180,180);
+  doc.setLineWidth(0.3);
+  doc.line(14,55,pw-14,55);
+
+  /* index table header */
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20,20,20);
+  doc.text('NOTES INDEX',14,62);
+
+  /* index table */
+  var idxBody=sorted.map(function(n,i){
+    return [
+      String(i+1),
+      n.noteNumber,
+      n.subDN||'—',
+      fd(n.date),
+      n.customer,
+      String(n.items.length),
+      'AED '+tot(n).toFixed(2)
+    ];
+  });
+  /* grand total row */
+  idxBody.push(['','','','','','Grand Total','AED '+grand.toFixed(2)]);
+
+  doc.autoTable({
+    startY:65,
+    head:[['#','Note #','Sub/Ref','Date','Customer','Items','Total (AED)']],
+    body:idxBody,
+    margin:{left:14,right:14,bottom:20},
+    styles:{font:'helvetica',fontSize:8.5,cellPadding:{top:3.5,bottom:3.5,left:3,right:3},textColor:[30,30,30],fillColor:[255,255,255],lineColor:[210,210,210],lineWidth:0.3},
+    headStyles:{fillColor:[240,240,240],textColor:[20,20,20],fontSize:8,fontStyle:'bold',lineColor:[170,170,170],lineWidth:0.4},
+    alternateRowStyles:{fillColor:[249,249,249]},
+    columnStyles:{
+      0:{cellWidth:9,  halign:'center',textColor:[150,150,150]},
+      1:{cellWidth:24, fontStyle:'bold'},
+      2:{cellWidth:22},
+      3:{cellWidth:26},
+      4:{cellWidth:'auto'},
+      5:{cellWidth:13, halign:'center'},
+      6:{cellWidth:30, halign:'right',fontStyle:'bold'}
+    },
+    didParseCell:function(data){
+      if(data.row.index===idxBody.length-1){
+        data.cell.styles.fontStyle='bold';
+        data.cell.styles.fillColor=[240,240,240];
+        if(data.column.index<5) data.cell.styles.textColor=[240,240,240];
+      }
+    },
+    didDrawPage:function(){
+      drawPageFrame();
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(140,140,140);
+      doc.text('Altius Industries LLC · by Harish Churathil',pw/2,ph-4,{align:'center'});
+    }
+  });
+
+
+    /* page numbers on ALL pages */
+  var totalPages=doc.internal.getNumberOfPages();
+  for(var p=1;p<=totalPages;p++){
+    doc.setPage(p);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(140,140,140);
+    doc.text('Page '+p+' of '+totalPages,pw/2,ph-8,{align:'center'});
+  }
+
+  doc.save('Altius_AllDeliveryNotes_'+new Date().toISOString().split('T')[0]+'.pdf');
+  toast('All notes PDF exported — '+sorted.length+' notes','sc');
+}
+
+/* EXPORT SINGLE DELIVERY NOTE PDF */
+function exportNotePDF(note){
+  if(!note){toast('No note selected','er');return;}
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=doc.internal.pageSize.getWidth();
+  var ph=doc.internal.pageSize.getHeight();
+  var t=tot(note);
+
+  /* ---- HEADER ---- */
+  /* top border line */
+  doc.setDrawColor(180,180,180);
+  doc.setLineWidth(0.5);
+  doc.line(14,12,pw-14,12);
+
+  /* company name */
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(15);
+  doc.setTextColor(20,20,20);
+  doc.text('ALTIUS INDUSTRIES LLC',pw/2,9,{align:'center'});
+
+  /* subtitle */
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(120,120,120);
+  doc.text('Delivery Note',pw/2,15.5,{align:'center'});
+
+  /* ---- DELIVERY NOTE TITLE BOX ---- */
+  doc.setDrawColor(30,30,30);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(14,19,pw-28,14,1.5,1.5,'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(13);
+  doc.setTextColor(20,20,20);
+  doc.text('DELIVERY NOTE: '+note.noteNumber, pw/2, 27, {align:'center'});
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100,100,100);
+  doc.text(note.subDN ? 'Ref: '+note.subDN : '', pw/2, 31, {align:'center'});
+
+  /* ---- META GRID (2 col layout) ---- */
+  var my = 37;
+  var fields = [
+    ['Note Number', note.noteNumber],
+    ['Date', fd(note.date)],
+    ['Sub / Reference', note.subDN||'—'],
+    ['Customer / Company', note.customer],
+    ['Delivery Address', note.address||'—'],
+    ['Total Items', String(note.items.length)]
+  ];
+
+  /* draw meta box */
+  doc.setDrawColor(200,200,200);
+  doc.setLineWidth(0.3);
+  doc.rect(14, my, pw-28, fields.length*9+2, 'S');
+
+  fields.forEach(function(f,idx){
+    var ry = my + 6 + idx*9;
+    /* label */
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(130,130,130);
+    doc.text(f[0], 18, ry);
+    /* value */
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(20,20,20);
+    var val = String(f[1]).length>70 ? String(f[1]).substring(0,69)+'…' : String(f[1]);
+    doc.text(val, 72, ry);
+    /* row divider */
+    if(idx < fields.length-1){
+      doc.setDrawColor(225,225,225);
+      doc.setLineWidth(0.2);
+      doc.line(18, ry+3, pw-18, ry+3);
+    }
+  });
+
+  var iy = my + fields.length*9 + 8;
+
+  /* ---- ITEMS SECTION HEADER ---- */
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(20,20,20);
+  doc.text('ITEMS', 14, iy);
+  doc.setDrawColor(30,30,30);
+  doc.setLineWidth(0.4);
+  doc.line(14, iy+1.5, 30, iy+1.5);
+  iy += 5;
+
+  /* ---- ITEMS TABLE ---- */
+  var ibody = note.items.map(function(it,idx){
+    var line = (+it.qty)*(+it.price||0);
+    return [
+      String(idx+1),
+      it.name,
+      String(it.qty),
+      it.unit,
+      'AED '+(+it.price||0).toFixed(2),
+      'AED '+line.toFixed(2)
+    ];
+  });
+
+  /* total row */
+  ibody.push(['','','','','Net Total (AED)','AED '+t.toFixed(2)]);
+
+  doc.autoTable({
+    startY: iy,
+    head:[['#','Product Name','Qty','Unit','Unit Price (AED)','Amount (AED)']],
+    body: ibody,
+    margin:{left:14,right:14,bottom:28},
+    styles:{
+      font:'helvetica',
+      fontSize:9,
+      cellPadding:{top:4,bottom:4,left:4,right:4},
+      textColor:[30,30,30],
+      fillColor:[255,255,255],
+      lineColor:[210,210,210],
+      lineWidth:0.3
+    },
+    headStyles:{
+      fillColor:[240,240,240],
+      textColor:[20,20,20],
+      fontSize:8.5,
+      fontStyle:'bold',
+      lineColor:[170,170,170],
+      lineWidth:0.4
+    },
+    alternateRowStyles:{fillColor:[249,249,249]},
+    columnStyles:{
+      0:{cellWidth:10, halign:'center', textColor:[150,150,150]},
+      1:{cellWidth:'auto', fontStyle:'bold'},
+      2:{cellWidth:14, halign:'center'},
+      3:{cellWidth:18, halign:'center'},
+      4:{cellWidth:36, halign:'right'},
+      5:{cellWidth:36, halign:'right', fontStyle:'bold'}
+    },
+    didParseCell:function(data){
+      /* style total row */
+      if(data.row.index===ibody.length-1){
+        data.cell.styles.fontStyle='bold';
+        data.cell.styles.fillColor=[240,240,240];
+        data.cell.styles.fontSize=10;
+        if(data.column.index<4) data.cell.styles.textColor=[240,240,240]; /* hide blanks */
+        if(data.column.index===4) data.cell.styles.textColor=[60,60,60];
+        if(data.column.index===5) data.cell.styles.textColor=[20,20,20];
+      }
+    }
+  });
+
+  var finalY = doc.lastAutoTable.finalY || iy+60;
+
+  /* ---- SIGNATURE AREA ---- */
+  var sigY = Math.min(finalY+12, ph-52);
+  doc.setDrawColor(180,180,180);
+  doc.setLineWidth(0.3);
+  doc.line(14, sigY+18, 74, sigY+18);
+  doc.line(pw-74, sigY+18, pw-14, sigY+18);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(130,130,130);
+  doc.text('Authorised Signature', 44, sigY+23, {align:'center'});
+  doc.text('Received By', pw-44, sigY+23, {align:'center'});
+  doc.text('Date: _______________', 44, sigY+30, {align:'center'});
+  doc.text('Date: _______________', pw-44, sigY+30, {align:'center'});
+
+  /* ---- FOOTER ---- */
+  doc.setDrawColor(180,180,180);
+  doc.setLineWidth(0.4);
+  doc.line(14, ph-14, pw-14, ph-14);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(140,140,140);
+  doc.text('This is a computer generated delivery note.', 14, ph-9);
+  doc.text('Altius Industries LLC · by Harish Churathil', pw/2, ph-9, {align:'center'});
+  doc.text(fd(new Date().toISOString().split('T')[0]), pw-14, ph-9, {align:'right'});
+
+  doc.save('Altius_DN_'+note.noteNumber.replace(/[^a-zA-Z0-9]/g,'_')+'_'+new Date().toISOString().split('T')[0]+'.pdf');
+  toast('Delivery note PDF exported!','sc');
+}
+
+/* EXPORT CUSTOMER PDF */
+function exportCustPDF(custName){
+  if(!custName){toast('No customer selected','er');return;}
+  var cn=notes.filter(function(n){return n.customer.trim().toLowerCase()===custName.trim().toLowerCase();});
+  if(!cn.length){toast('No notes for this customer','er');return;}
+  cn=cn.slice().sort(function(a,b){return(parseInt(a.noteNumber.replace(/\D/g,''))||0)-(parseInt(b.noteNumber.replace(/\D/g,''))||0);});
+
+  var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var pw=doc.internal.pageSize.getWidth();
+  var ph=doc.internal.pageSize.getHeight();
+  var ct=cn.reduce(function(s,n){return s+tot(n);},0);
+
+  function drawPage(){
+    doc.setDrawColor(180,180,180);
+    doc.setLineWidth(0.5);
+    doc.line(14,12,pw-14,12);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14);
+    doc.setTextColor(30,30,30);
+    doc.text('ALTIUS INDUSTRIES LLC',pw/2,9,{align:'center'});
+    doc.line(14,ph-14,pw-14,ph-14);
+  }
+
+  /* ---- PAGE 1: CUSTOMER SUMMARY ---- */
+  drawPage();
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(30,30,30);
+  doc.text('CUSTOMER STATEMENT',pw/2,22,{align:'center'});
+  doc.setDrawColor(30,30,30);
+  doc.setLineWidth(0.4);
+  doc.line(pw/2-30,23.5,pw/2+30,23.5);
+
+  /* customer info box */
+  doc.setDrawColor(180,180,180);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(14,27,pw-28,24,1,1,'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.setTextColor(30,30,30);
+  doc.text(custName,pw/2,36,{align:'center'});
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(80,80,80);
+  doc.text('Total Delivery Notes: '+cn.length,pw/2,42,{align:'center'});
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.setTextColor(30,30,30);
+  doc.text('Grand Total: AED '+ct.toFixed(2),pw/2,48,{align:'center'});
+
+  /* summary line */
+  var last=cn[cn.length-1];
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100,100,100);
+  doc.text('Date: '+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}), 14, 58);
+  doc.text('Last Note Date: '+(last?fd(last.date):'—'), pw-14, 58, {align:'right'});
+  doc.setDrawColor(180,180,180);
+  doc.setLineWidth(0.3);
+  doc.line(14,61,pw-14,61);
+
+  /* summary table */
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(30,30,30);
+  doc.text('DELIVERY NOTES SUMMARY',14,68);
+
+  var sumBody=cn.map(function(n){
+    return [fd(n.date),n.noteNumber,n.subDN||'—',String(n.items.length),'AED '+tot(n).toFixed(2)];
+  });
+  sumBody.push(['','','','Grand Total','AED '+ct.toFixed(2)]);
+
+  doc.autoTable({
+    startY:71,
+    head:[['Date','Note #','Sub / Ref','Items','Total (AED)']],
+    body:sumBody,
+    margin:{left:14,right:14,bottom:20},
+    styles:{font:'helvetica',fontSize:9,cellPadding:{top:3.5,bottom:3.5,left:4,right:4},textColor:[30,30,30],fillColor:[255,255,255],lineColor:[210,210,210],lineWidth:0.3},
+    headStyles:{fillColor:[245,245,245],textColor:[30,30,30],fontSize:8.5,fontStyle:'bold',lineColor:[180,180,180],lineWidth:0.4},
+    alternateRowStyles:{fillColor:[250,250,250]},
+    columnStyles:{
+      0:{cellWidth:30},
+      1:{cellWidth:28,fontStyle:'bold'},
+      2:{cellWidth:28},
+      3:{cellWidth:16,halign:'center'},
+      4:{cellWidth:36,halign:'right',fontStyle:'bold'}
+    },
+    didParseCell:function(data){
+      if(data.row.index===sumBody.length-1){
+        data.cell.styles.fontStyle='bold';
+        data.cell.styles.fillColor=[245,245,245];
+      }
+    },
+    didDrawPage:function(){
+      drawPage();
+      var pages=doc.internal.getNumberOfPages();
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(140,140,140);
+      doc.text('Altius Industries LLC · by Harish Churathil',pw/2,ph-4,{align:'center'});
+    }
+  });
+
+  /* ---- ONE PAGE PER NOTE ---- */
+  cn.forEach(function(n){
+    doc.addPage();
+    drawPage();
+
+    /* note title */
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(11);
+    doc.setTextColor(30,30,30);
+    doc.text('DELIVERY NOTE',pw/2,22,{align:'center'});
+    doc.setDrawColor(30,30,30);
+    doc.setLineWidth(0.4);
+    doc.line(pw/2-22,23.5,pw/2+22,23.5);
+
+    /* meta grid — 2 columns */
+    var meta=[
+      ['Note Number',n.noteNumber],
+      ['Sub / Reference',n.subDN||'—'],
+      ['Date',fd(n.date)],
+      ['Customer',n.customer],
+      ['Delivery Address',n.address||'—']
+    ];
+    var my=29;
+    doc.setDrawColor(180,180,180);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(14,my,pw-28,meta.length*9+4,1,1,'S');
+    meta.forEach(function(m,idx){
+      var ry=my+5+idx*9;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(120,120,120);
+      doc.text(m[0].toUpperCase(),18,ry);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(9);
+      doc.setTextColor(30,30,30);
+      var val=String(m[1]).length>60?String(m[1]).substring(0,59)+'…':String(m[1]);
+      doc.text(val,70,ry);
+      if(idx<meta.length-1){
+        doc.setDrawColor(220,220,220);
+        doc.line(18,ry+3,pw-18,ry+3);
+      }
+    });
+
+    var iy=my+meta.length*9+10;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(30,30,30);
+    doc.text('ITEMS',14,iy);
+    iy+=4;
+
+    var nt=tot(n);
+    var ibody=n.items.map(function(it,idx){
+      return [String(idx+1),it.name,String(it.qty),it.unit,'AED '+(+it.price||0).toFixed(2),'AED '+((+it.qty)*(+it.price||0)).toFixed(2)];
+    });
+    ibody.push(['','','','','Net Total (AED)','AED '+nt.toFixed(2)]);
+
+    doc.autoTable({
+      startY:iy,
+      head:[['#','Product Name','Qty','Unit','Unit Price','Amount (AED)']],
+      body:ibody,
+      margin:{left:14,right:14,bottom:20},
+      styles:{font:'helvetica',fontSize:9,cellPadding:{top:3.5,bottom:3.5,left:4,right:4},textColor:[30,30,30],fillColor:[255,255,255],lineColor:[210,210,210],lineWidth:0.3},
+      headStyles:{fillColor:[245,245,245],textColor:[30,30,30],fontSize:8.5,fontStyle:'bold',lineColor:[180,180,180],lineWidth:0.4},
+      alternateRowStyles:{fillColor:[250,250,250]},
+      columnStyles:{
+        0:{cellWidth:10,halign:'center',textColor:[140,140,140]},
+        1:{cellWidth:'auto',fontStyle:'bold'},
+        2:{cellWidth:14,halign:'center'},
+        3:{cellWidth:18,halign:'center'},
+        4:{cellWidth:30,halign:'right'},
+        5:{cellWidth:34,halign:'right',fontStyle:'bold'}
+      },
+      didParseCell:function(data){
+        if(data.row.index===ibody.length-1){
+          data.cell.styles.fontStyle='bold';
+          data.cell.styles.fillColor=[245,245,245];
+        }
+      },
+      didDrawPage:function(){
+        drawPage();
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(140,140,140);
+        doc.text('Altius Industries LLC · by Harish Churathil',pw/2,ph-4,{align:'center'});
+      }
+    });
+  });
+
+  /* page numbers on all pages */
+  var total=doc.internal.getNumberOfPages();
+  for(var p2=1;p2<=total;p2++){
+    doc.setPage(p2);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(140,140,140);
+    doc.text('Page '+p2+' of '+total,pw/2,ph-8,{align:'center'});
+    doc.text('Altius Industries LLC · by Harish Churathil',pw/2,ph-4,{align:'center'});
+  }
+
+  doc.save('Altius_'+custName.replace(/[^a-zA-Z0-9]/g,'_')+'_'+new Date().toISOString().split('T')[0]+'.pdf');
+  toast('Customer PDF exported!','sc');
+}
+
+/* =========================================================
+   PWA — MANIFEST, SERVICE WORKER & INSTALL
+   ========================================================= */
+(function(){
+  /* --- Inline SVG icon as data URI --- */
+  var iconSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#05070f"/><rect x="40" y="40" width="432" height="432" rx="80" fill="#0d1120"/><rect x="80" y="60" width="352" height="4" rx="2" fill="#4f8ef7"/><text x="256" y="200" font-family="Arial" font-size="180" font-weight="900" fill="#4f8ef7" text-anchor="middle" dominant-baseline="middle">DN</text><text x="256" y="340" font-family="Arial" font-size="60" font-weight="700" fill="#f5c842" text-anchor="middle">ALTIUS</text></svg>';
+  var iconUrl='data:image/svg+xml;base64,'+btoa(iconSvg);
+
+  /* Set apple touch icon */
+  var ai=document.getElementById('apple-icon');
+  if(ai) ai.href=iconUrl;
+
+  /* --- Inline manifest via blob --- */
+  var manifest={
+    name:'Altius DN Manager',
+    short_name:'DN Manager',
+    description:'Altius Industries LLC — Delivery Note System by Harish Churathil',
+    start_url:'.',
+    display:'standalone',
+    background_color:'#05070f',
+    theme_color:'#05070f',
+    orientation:'any',
+    icons:[
+      {src:iconUrl,sizes:'192x192',type:'image/svg+xml',purpose:'any maskable'},
+      {src:iconUrl,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}
+    ]
+  };
+  var mb=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  var mu=URL.createObjectURL(mb);
+  var ml=document.getElementById('pwa-manifest');
+  if(ml) ml.href=mu;
+
+  /* --- Inline Service Worker via blob --- */
+  var swCode=[
+    'var CACHE="altius-dn-v1";',
+    'self.addEventListener("install",function(e){',
+    '  e.waitUntil(caches.open(CACHE).then(function(c){',
+    '    return c.addAll([]);',
+    '  }));',
+    '  self.skipWaiting();',
+    '});',
+    'self.addEventListener("activate",function(e){',
+    '  e.waitUntil(clients.claim());',
+    '});',
+    'self.addEventListener("fetch",function(e){',
+    '  e.respondWith(',
+    '    caches.match(e.request).then(function(r){',
+    '      return r||fetch(e.request);',
+    '    })',
+    '  );',
+    '});'
+  ].join('\n');
+  var swBlob=new Blob([swCode],{type:'application/javascript'});
+  var swUrl=URL.createObjectURL(swBlob);
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register(swUrl).catch(function(){});
+  }
+
+  /* --- Install prompt capture --- */
+  var deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();
+    deferredPrompt=e;
+    var btn=document.getElementById('btn-install-pwa');
+    if(btn){btn.innerHTML='⬇ Install App';btn.title='Install to your device';}
+  });
+  window.addEventListener('appinstalled',function(){
+    var btn=document.getElementById('btn-install-pwa');
+    if(btn){btn.innerHTML='✅ Installed';setTimeout(function(){btn.innerHTML='📲 Install App';},3000);}
+    deferredPrompt=null;
+    toast('App installed successfully!','sc');
+  });
+
+  /* --- Install button click --- */
+  document.addEventListener('click',function(e){
+    if(e.target && e.target.id==='btn-install-pwa'){
+      openInstallModal(deferredPrompt);
+    }
+  });
+
+  window._deferredPrompt=function(){return deferredPrompt;};
+})();
+
+function openInstallModal(deferredPrompt){
+  var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  var isAndroid=/android/i.test(navigator.userAgent);
+  var isMac=/Macintosh|MacIntel/.test(navigator.userAgent)&&navigator.maxTouchPoints>1;
+  var platform=isIOS||isMac?'ios':isAndroid?'android':'desktop';
+
+  var steps={
+    ios:[
+      ['Tap the <strong>Share</strong> button <strong>⎙</strong> at the bottom of Safari','(the box with an arrow pointing up)'],
+      ['Scroll down and tap <strong>"Add to Home Screen"</strong>','Look for the + icon'],
+      ['Tap <strong>"Add"</strong> in the top right corner','The app icon will appear on your home screen']
+    ],
+    android:[
+      ['Tap the <strong>menu button ⋮</strong> in Chrome','Three dots in the top right corner'],
+      ['Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong>',''],
+      ['Tap <strong>"Add"</strong> or <strong>"Install"</strong> to confirm','The app will appear on your home screen']
+    ],
+    desktop:[
+      ['Look for the <strong>install icon ⊕</strong> in your browser address bar','Usually on the right side of the URL bar'],
+      ['Click <strong>"Install"</strong> in the popup','Or use the browser menu → "Install Altius DN Manager"'],
+      ['The app will open as a <strong>standalone window</strong>','Like a native desktop application']
+    ]
+  };
+
+  var bd=document.createElement('div');
+  bd.className='inst-modal';
+
+  var platformBtns=['ios','android','desktop'].map(function(p){
+    var icons={ios:'🍎',android:'🤖',desktop:'🖥️'};
+    var labels={ios:'iPhone / iPad',android:'Android',desktop:'Desktop'};
+    return '<div class="inst-plt'+(p===platform?' active':'')+ '" data-p="'+p+'"><span class="pico">'+icons[p]+'</span>'+labels[p]+'</div>';
+  }).join('');
+
+  function buildSteps(p){
+    return steps[p].map(function(s,i){
+      return '<div class="inst-step"><div class="inst-snum">'+(i+1)+'</div><div class="inst-stxt">'+s[0]+(s[1]?'<br/><span style="font-size:11px;color:var(--tx3)">'+s[1]+'</span>':'')+'</div></div>';
+    }).join('');
+  }
+
+  bd.innerHTML='<div class="inst-box">'+
+    '<div class="inst-ico">📲</div>'+
+    '<div class="inst-title">Install Altius DN Manager</div>'+
+    '<div class="inst-sub">Install this app on your device for quick access,<br/>offline use and a full-screen experience.</div>'+
+    '<div class="inst-platform">'+platformBtns+'</div>'+
+    '<div class="inst-steps" id="inst-steps-body">'+buildSteps(platform)+'</div>'+
+    '<div style="display:flex;gap:10px">'+
+    (deferredPrompt?'<button class="btn bpr" id="inst-direct-btn" style="flex:1;justify-content:center">⬇ Install Now</button>':'')+
+    '<button class="btn bsc" id="inst-close-btn" style="flex:1;justify-content:center">Close</button>'+
+    '</div></div>';
+
+  document.body.appendChild(bd);
+
+  /* Platform switcher */
+  bd.querySelectorAll('.inst-plt').forEach(function(b){
+    b.onclick=function(){
+      bd.querySelectorAll('.inst-plt').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      var sb=bd.querySelector('#inst-steps-body');
+      if(sb) sb.innerHTML=buildSteps(b.getAttribute('data-p'));
+    };
+  });
+
+  /* Direct install (Chrome/Edge) */
+  var idb=bd.querySelector('#inst-direct-btn');
+  if(idb) idb.onclick=function(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(r){
+        if(r.outcome==='accepted'){bd.remove(); toast('Installing…','sc');}
+        deferredPrompt=null;
+      });
+    }
+  };
+
+  bd.querySelector('#inst-close-btn').onclick=function(){bd.remove();};
+  bd.onclick=function(e){if(e.target===bd)bd.remove();};
+}
+
+/* =========================================================
+   DATA TRANSFER
+   ========================================================= */
+function openDataTransfer(){
+  var bd=document.createElement('div');
+  bd.className='dt-modal';
+  bd.id='dt-modal';
+  var sz=JSON.stringify({notes:notes,prods:prods}).length;
+  var szk=(sz/1024).toFixed(1);
+  bd.innerHTML=
+    '<div class="dt-box">'+
+    '<div class="dt-head">'+
+    '<div><div class="dt-title">&#x21c4; Data Transfer</div><div class="dt-sub">Backup &middot; Restore &middot; Share data between devices</div></div>'+
+    '<button class="dt-close" id="dt-close">&#x2715;</button>'+
+    '</div>'+
+    '<div class="dt-body">'+
+    '<div class="dt-section">'+
+    '<div class="dt-shead"><div class="dt-ico dt-ico-exp">&#x1F4E4;</div><div><div class="dt-stitle">Export / Backup Data</div></div></div>'+
+    '<div class="dt-stats">'+
+    '<div class="dt-stat"><div class="dt-stat-v">'+notes.length+'</div><div class="dt-stat-l">Notes</div></div>'+
+    '<div class="dt-stat"><div class="dt-stat-v">'+prods.length+'</div><div class="dt-stat-l">Products</div></div>'+
+    '<div class="dt-stat"><div class="dt-stat-v">'+uniqueCustomers().length+'</div><div class="dt-stat-l">Customers</div></div>'+
+    '<div class="dt-stat"><div class="dt-stat-v">'+szk+'KB</div><div class="dt-stat-l">File Size</div></div>'+
+    '</div>'+
+    '<p class="dt-sdesc">Downloads a <strong style="color:var(--wh)">.json</strong> backup file with all notes, products and customer data. Send this file to transfer everything to another device or person.</p>'+
+    '<button class="btn bex" id="dt-export-json" style="width:100%;justify-content:center">&#x1F4E4; Download Backup File (.json)</button>'+
+    '</div>'+
+    '<div class="dt-section">'+
+    '<div class="dt-shead"><div class="dt-ico dt-ico-imp">&#x1F4E5;</div><div><div class="dt-stitle">Import / Restore Data</div></div></div>'+
+    '<p class="dt-sdesc">Select a <strong style="color:var(--wh)">.json</strong> backup file from this app. Choose to <strong style="color:var(--gr)">merge</strong> with existing data or <strong style="color:var(--rd)">replace</strong> everything.</p>'+
+    '<label class="dt-file-label"><input type="file" id="dt-file-inp" accept=".json"/>&#x1F4C2; Click to select backup file (.json)</label>'+
+    '<div id="dt-file-name" style="text-align:center;margin-top:7px;min-height:18px;font-size:11px;font-family:JetBrains Mono,monospace;color:var(--tx3)">No file selected</div>'+
+    '<div style="display:flex;gap:10px;margin-top:12px">'+
+    '<button class="btn bim" id="dt-merge" style="flex:1;justify-content:center" disabled>&#x2295; Merge with existing</button>'+
+    '<button class="btn brd" id="dt-replace" style="flex:1;justify-content:center" disabled>&#x27F2; Replace all data</button>'+
+    '</div>'+
+    '</div>'+
+    '<div class="dt-section" style="border-color:rgba(240,90,90,.25)">'+
+    '<div class="dt-shead"><div class="dt-ico dt-ico-clr">&#x1F5D1;</div><div><div class="dt-stitle" style="color:var(--rd)">Clear All Data</div></div></div>'+
+    '<p class="dt-sdesc">Permanently deletes all delivery notes and products from this device. Export a backup first!</p>'+
+    '<button class="btn bdn" id="dt-clear" style="width:100%;justify-content:center;border-color:rgba(240,90,90,.5)">&#x1F5D1; Clear All Data from this Device</button>'+
+    '</div>'+
+    '</div></div>';
+  document.body.appendChild(bd);
+  bd.querySelector('#dt-close').onclick=function(){bd.remove();};
+  bd.onclick=function(e){if(e.target===bd)bd.remove();};
+  bd.querySelector('#dt-export-json').onclick=function(){
+    var data={version:1,exportedAt:new Date().toISOString(),exportedBy:'Altius DN Manager',notes:notes,prods:prods};
+    var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;
+    a.download='Altius_DNManager_Backup_'+new Date().toISOString().split('T')[0]+'.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Backup file downloaded!','sc');
+  };
+  var fileInp=bd.querySelector('#dt-file-inp');
+  var importData=null;
+  fileInp.onchange=function(){
+    var f=fileInp.files[0]; if(!f)return;
+    var fn=bd.querySelector('#dt-file-name');
+    fn.textContent='Reading: '+f.name+'...';
+    fn.style.color='var(--tx3)';
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var d=JSON.parse(e.target.result);
+        if(!d.notes||!d.prods){throw new Error('Invalid');}
+        importData=d;
+        fn.textContent='OK: '+f.name+' — '+d.notes.length+' notes, '+d.prods.length+' products';
+        fn.style.color='var(--gr)';
+        bd.querySelector('#dt-merge').removeAttribute('disabled');
+        bd.querySelector('#dt-replace').removeAttribute('disabled');
+      }catch(err){
+        fn.textContent='Invalid file — must be an Altius DN Manager backup';
+        fn.style.color='var(--rd)';
+        importData=null;
+      }
+    };
+    reader.readAsText(f);
+  };
+  bd.querySelector('#dt-merge').onclick=function(){
+    if(!importData)return;
+    var existingNums=notes.map(function(n){return n.noteNumber.toLowerCase();});
+    var addedN=0;
+    importData.notes.forEach(function(n){
+      if(existingNums.indexOf(n.noteNumber.toLowerCase())===-1){notes.push(n);existingNums.push(n.noteNumber.toLowerCase());addedN++;}
+    });
+    var addedP=0;
+    importData.prods.forEach(function(p){
+      var ex=prods.find(function(x){return x.name.toLowerCase()===p.name.toLowerCase();});
+      if(ex){ex.price=p.price;ex.unit=p.unit;}else{prods.push(p);addedP++;}
+    });
+    SN();SP();bd.remove();draw();
+    toast('Merged! +'+addedN+' notes, +'+addedP+' products','sc');
+  };
+  bd.querySelector('#dt-replace').onclick=function(){
+    if(!importData)return;
+    confirmDel('Replace All Data','This will <strong>delete all existing data</strong> and replace with the imported file. Cannot be undone.',function(){
+      notes=importData.notes||[];prods=importData.prods||[];SN();SP();bd.remove();draw();
+      toast('Data replaced — '+notes.length+' notes loaded','sc');
+    });
+  };
+  bd.querySelector('#dt-clear').onclick=function(){
+    confirmDel('Clear All Data','Permanently delete <strong>all '+notes.length+' notes</strong> and <strong>'+prods.length+' products</strong>?<br/>Export a backup first!',function(){
+      notes=[];prods=[];SN();SP();bd.remove();draw();
+      toast('All data cleared','sc');
+    });
+  };
+}
+
+draw();
+</script>
+</body>
+</html>
