@@ -293,7 +293,7 @@ var curView='notes', curData=null;
 function go(v,d){
   curView=v; curData=(d===undefined?null:d);
   document.querySelectorAll('.nvb').forEach(function(b){b.classList.remove('on');});
-  var maps={notes:'notes',create:'notes',detail:'notes',products:'products',customers:'customers',custdetail:'customers'};
+  var maps={notes:'notes',create:'notes',detail:'notes',edit:'notes',products:'products',customers:'customers',custdetail:'customers'};
   document.querySelectorAll('.nvb').forEach(function(b){if(b.getAttribute('data-view')===maps[v])b.classList.add('on');});
   draw();
   window.scrollTo({top:0,behavior:'smooth'});
@@ -305,6 +305,7 @@ function draw(){
   else if(curView==='products')   M.innerHTML=rProds();
   else if(curView==='create')     M.innerHTML=rCreate();
   else if(curView==='detail')     M.innerHTML=rDetail();
+  else if(curView==='edit')       M.innerHTML=rEdit();
   else if(curView==='customers')  M.innerHTML=rCustomers();
   else if(curView==='custdetail') M.innerHTML=rCustDetail();
   document.getElementById('cnt-notes').textContent=notes.length;
@@ -581,6 +582,7 @@ function rDetail(){
     '<div><div class="pt">'+esc(note.noteNumber)+sub+'</div><div class="ps">'+esc(note.customer)+' · '+fd(note.date)+'</div></div>'+
     '<div style="display:flex;gap:10px">'+
     '<button class="btn bpu bsm" id="btn-export-note-pdf">📄 Export PDF</button>'+
+    '<button class="btn bsc bsm" id="btn-edit-note" data-id="'+note.id+'">✏️ Edit</button>'+
     '<button class="btn bdn bsm btn-del-note" data-id="'+note.id+'">🗑 Delete</button>'+
     '<button class="btn bsc" id="btn-back-notes">← Back</button>'+
     '</div></div>'+
@@ -600,6 +602,77 @@ function rDetail(){
     '<tbody>'+rows+'</tbody></table></div>'+
     '<div class="tbar"><div class="tlb">Total Amount</div><div class="tvl">AED '+t.toFixed(2)+'</div></div>'+
     '</div></div>';
+}
+
+
+/* =========================================================
+   EDIT VIEW
+   ========================================================= */
+function rEdit(){
+  var note=curData; if(!note){go('notes');return'';}
+  var t=FI.reduce(function(s,i){return s+(+i.qty)*(+i.price||0);},0);
+  return '<div class="ph">'+
+    '<div><div class="pt">Edit Delivery Note</div><div class="ps">'+esc(note.noteNumber)+' · '+esc(note.customer)+'</div></div>'+
+    '<button class="btn bsc" id="btn-back-detail">← Cancel</button>'+
+    '</div>'+
+    '<div class="fc">'+
+    '<div class="fhd"><span style="font-size:13px;color:var(--tx3);font-family:JetBrains Mono,monospace;letter-spacing:1px">EDIT DELIVERY NOTE</span></div>'+
+    '<div class="fbd">'+
+    '<div class="fsc"><div class="flb">Note Details</div>'+
+    '<div class="fgr">'+
+    '<div class="fg"><label class="lb">Note Number *</label><input type="text" id="fno" value="'+esc(FD.noteNumber)+'" placeholder="e.g. DN-001"/></div>'+
+    '<div class="fg"><label class="lb">Sub / Reference No.</label><input type="text" id="fsd" value="'+esc(FD.subDN)+'" placeholder="Optional reference"/></div>'+
+    '<div class="fg"><label class="lb">Date</label><input type="date" id="fdt" value="'+FD.date+'"/></div>'+
+    '<div class="fg"><label class="lb">Customer / Company *</label>'+
+    '<div class="acw"><input type="text" id="fcu" value="'+esc(FD.customer)+'" placeholder="Type customer name…" autocomplete="off"/>'+
+    '<div class="drop" id="cdd"></div></div></div>'+
+    '<div class="fg" style="grid-column:1/-1"><label class="lb">Delivery Address</label><input type="text" id="fad" value="'+esc(FD.address)+'" placeholder="Site or delivery address"/></div>'+
+    '</div></div>'+
+    '<div class="fsc"><div class="flb">Products</div>'+
+    '<div class="tw ac-wrap"><table style="overflow:visible">'+
+    '<colgroup><col style="width:33%"><col style="width:10%"><col style="width:11%"><col style="width:15%"><col style="width:16%"><col style="width:15%"></colgroup>'+
+    '<thead><tr><th>Product Name</th><th>Qty</th><th>Unit</th><th style="text-align:right">Unit Price (AED)</th><th style="text-align:right">Line Total (AED)</th><th></th></tr></thead>'+
+    '<tbody id="IB">'+FI.map(rowHtml).join('')+'</tbody>'+
+    '</table></div>'+
+    '<button class="btn bgh" id="btn-add-row">＋ Add Product Line</button>'+
+    '</div>'+
+    '<div class="tbar"><div class="tlb">Total Amount</div><div class="tvl" id="ft">AED '+t.toFixed(2)+'</div></div>'+
+    '<div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px">'+
+    '<button class="btn bsc" id="btn-back-detail">Cancel</button>'+
+    '<button class="btn bpr" id="btn-save-edit">✓ Save Changes</button>'+
+    '</div></div></div>';
+}
+
+function saveEdit(){
+  syncForm();
+  var note=curData; if(!note)return;
+  if(!FD.noteNumber.trim()){toast('Please enter a Note Number','er');return;}
+  if(!FD.customer.trim()){toast('Please enter a Customer name','er');return;}
+  var valid=FI.filter(function(i){return i.name.trim();});
+  if(!valid.length){toast('Add at least one product','er');return;}
+  /* check duplicate note number — allow same note's own number */
+  var dup=notes.find(function(n){return n.noteNumber.toLowerCase()===FD.noteNumber.trim().toLowerCase()&&n.id!==note.id;});
+  if(dup){toast('Note number already used by another note','er');return;}
+  /* update products catalogue */
+  valid.forEach(function(item){
+    var ex=prods.find(function(p){return p.name.toLowerCase()===item.name.trim().toLowerCase();});
+    if(ex){ex.price=item.price;ex.unit=item.unit;}
+    else{prods.push({id:uid(),name:item.name.trim(),unit:item.unit,price:item.price,usedCount:1});}
+  });
+  SP();
+  /* patch note in-place */
+  note.noteNumber=FD.noteNumber.trim();
+  note.subDN=FD.subDN.trim();
+  note.date=FD.date;
+  note.customer=FD.customer.trim();
+  note.address=FD.address.trim();
+  note.items=valid.map(function(i){return{id:i.id,name:i.name.trim(),qty:i.qty,unit:i.unit,price:i.price};});
+  note.updatedAt=new Date().toISOString();
+  SN();
+  curData=note;
+  FI=[];
+  toast('Delivery note updated!','sc');
+  go('detail',note);
 }
 
 /* =========================================================
@@ -653,10 +726,25 @@ function bindEvents(){
   /* BACK BUTTONS */
   var bbn=document.getElementById('btn-back-notes');
   if(bbn) bbn.onclick=function(){go('notes');};
+  var bbd=document.getElementById('btn-back-detail');
+  if(bbd) bbd.onclick=function(){go('detail',curData);};
   var bbc=document.getElementById('btn-back-custs');
   if(bbc) bbc.onclick=function(){go('customers');};
   var bcan=document.getElementById('btn-cancel');
   if(bcan) bcan.onclick=function(){go('notes');};
+
+  /* EDIT NOTE */
+  var ben=document.getElementById('btn-edit-note');
+  if(ben) ben.onclick=function(){
+    var id=ben.getAttribute('data-id');
+    var n=notes.find(function(x){return x.id===id;});
+    if(!n)return;
+    curData=n;
+    /* pre-fill FD and FI from existing note */
+    FD={noteNumber:n.noteNumber,subDN:n.subDN||'',date:n.date,customer:n.customer,address:n.address||''};
+    FI=n.items.map(function(i){return{id:i.id||uid(),name:i.name,qty:i.qty,unit:i.unit,price:i.price};});
+    go('edit',n);
+  };
 
   /* CUSTOMERS VIEW */
   var cs=document.getElementById('cs');
@@ -682,9 +770,13 @@ function bindEvents(){
   var bnp=document.getElementById('btn-export-note-pdf');
   if(bnp) bnp.onclick=function(){exportNotePDF(curData);};
 
-  /* CREATE FORM */
-  if(curView==='create'){
+  /* CREATE / EDIT FORM */
+  if(curView==='create'||curView==='edit'){
     bindFormEvents();
+  }
+  if(curView==='edit'){
+    var bse=document.getElementById('btn-save-edit');
+    if(bse) bse.onclick=saveEdit;
   }
 }
 
@@ -694,7 +786,7 @@ function bindEvents(){
 function bindFormEvents(){
   /* Save / add row */
   var bsave=document.getElementById('btn-save-note');
-  if(bsave) bsave.onclick=saveN;
+  if(bsave&&curView==='create') bsave.onclick=saveN;
   var badd=document.getElementById('btn-add-row');
   if(badd) badd.onclick=addRow;
 
